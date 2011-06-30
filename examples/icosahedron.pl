@@ -10,10 +10,7 @@ The program demonstrates the use of the OpenGL lighting model.  A icosahedron
 is drawn using a grey material characteristic.  A single light source
 illuminates the object. Example adapted from light.c.
 
-The code demonstrates use of Prima together with OpenGL . Currently ( OpenGL
-v0.64 ) it can only operate on X-based systems with GLX support, and only with
-one GL window per application.  The original example code can be found in
-OpenGL distribution in examples/light.pl .
+The original example code can be found in OpenGL distribution in examples/light.pl .
 
 =cut
 
