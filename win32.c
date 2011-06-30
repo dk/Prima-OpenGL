@@ -95,22 +95,21 @@ gl_context_create( Handle widget, GLRequest * request)
    
 	if ( !( pf = ChoosePixelFormat(dc, &pfd))) {
 		SET_ERROR("ChoosePixelFormat");
-		goto RET;
+		return (Handle)0;
 	}
 	if ( !SetPixelFormat(dc, pf, &pfd)) {
 		SET_ERROR("SetPixelFormat");
-		goto RET;
+		return (Handle)0;
 	}		
 	if ( !( gl = wglCreateContext(dc))) {
 		SET_ERROR("wglCreateContext");
-		goto RET;
+		return (Handle)0;
 	}
 
 	ret = malloc( sizeof( Context ));
 	ret-> dc  = dc;
 	ret-> gl  = gl;
 	ret-> wnd = wnd;
-RET:
 
 	return (Handle) ret;
 }
