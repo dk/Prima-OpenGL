@@ -3,10 +3,13 @@ OpenGL.c
 OpenGL.o
 OpenGL.obj
 OpenGL.def
+OpenGL.bs
 pm_to_blib
 vc100.pdb 
 win32.o
 win32.obj
 x11.o
 Makefile.old
-
+Makefile
+dll.base
+dll.exp
