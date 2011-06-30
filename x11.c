@@ -1,0 +1,146 @@
+#include "EXTERN.h"
+#include "perl.h"
+#include "XSUB.h"
+#include <Component.h>
+#include "prima_gl.h"
+#include <unix/guts.h>
+
+#define Drawable        XDrawable
+#define Font            XFont
+#define Window          XWindow
+#include <GL/gl.h>
+#include <GL/glx.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define var (( PComponent) widget)
+#define ctx (( Context*) context)
+
+typedef struct {
+	Window window;
+	GLXContext context;
+} Context;
+
+#define ERROR_CHOOSE_VISUAL  1
+#define ERROR_CREATE_CONTEXT 2
+#define ERROR_OTHER          3
+
+int last_error = 0;
+
+#define CLEAR_ERROR  last_error = 0
+#define SET_ERROR(s) last_error = s
+
+Handle
+gl_context_create( Handle widget, GLRequest * request)
+{
+	int attr_list[64], *attr = attr_list;
+	XVisualInfo * visual;
+	GLXContext context;
+	Context * ret;
+
+	CLEAR_ERROR;
+
+#define ATTR(in,out) \
+	if ( request-> in) { \
+		*(attr++) = out; \
+		*(attr++) = request-> in; \
+	}
+
+	*(attr++) = GLX_USE_GL;
+	if ( request-> pixels         == GLREQ_PIXEL_RGBA) *(attr++) = GLX_RGBA;
+	if ( request-> double_buffer  == GLREQ_TRUE) *(attr++) = GLX_DOUBLEBUFFER;
+	if ( request-> stereo         == GLREQ_TRUE) *(attr++) = GLX_STEREO;
+	ATTR( layer           , GLX_LEVEL            )
+	ATTR( color_bits      , GLX_BUFFER_SIZE      )
+	ATTR( aux_buffers     , GLX_AUX_BUFFERS      )
+	ATTR( red_bits        , GLX_RED_SIZE         )
+	ATTR( green_bits      , GLX_GREEN_SIZE       )
+	ATTR( blue_bits       , GLX_BLUE_SIZE        )
+	ATTR( alpha_bits      , GLX_ALPHA_SIZE       )
+	ATTR( depth_bits      , GLX_DEPTH_SIZE       )
+	ATTR( stencil_bits    , GLX_STENCIL_SIZE     )
+	ATTR( accum_red_bits  , GLX_ACCUM_RED_SIZE   )
+	ATTR( accum_green_bits, GLX_ACCUM_GREEN_SIZE )
+	ATTR( accum_blue_bits , GLX_ACCUM_BLUE_SIZE  )
+	ATTR( accum_alpha_bits, GLX_ACCUM_ALPHA_SIZE )
+	*(attr++) = 0;
+
+	if ( !( visual = glXChooseVisual( DISP, SCREEN, attr_list ))) {
+		if ( request-> pixels != GLREQ_PIXEL_RGBA) {
+			/* emulate win32 which does it softly, i.e. if RGBA fails, it proposes PALETTED */
+			request-> pixels = GLREQ_PIXEL_RGBA;
+			return gl_context_create( widget, request);
+		}
+		if ( request-> double_buffer == GLREQ_DONTCARE) {
+			request-> double_buffer = GLREQ_TRUE;
+			return gl_context_create( widget, request );
+		}
+		SET_ERROR( ERROR_CHOOSE_VISUAL );
+		return (Handle) 0;
+	}
+
+	if ( !( context = glXCreateContext( DISP, visual, 0, request-> render != GLREQ_RENDER_XSERVER))) {
+		SET_ERROR( ERROR_CREATE_CONTEXT );
+		return (Handle) 0;
+	}
+
+	ret = malloc( sizeof( Context ));
+	ret-> context  = context;
+	ret-> window   = var-> handle;
+
+	return (Handle) ret;
+}
+
+void
+gl_context_destroy( Handle context)
+{
+	CLEAR_ERROR;
+	if ( glXGetCurrentContext() == ctx-> context) 
+		glXMakeCurrent( DISP, 0, NULL);
+	glXDestroyContext( DISP, ctx-> context );
+	free(( void*)  ctx );
+}
+
+Bool
+gl_context_make_current( Handle context)
+{
+	Bool ret;
+	CLEAR_ERROR;
+	if ( context ) {
+		ret = glXMakeCurrent( DISP, ctx-> window, ctx-> context);
+	} else {
+		ret = glXMakeCurrent( DISP, 0, NULL );
+	}
+	if ( !ret ) SET_ERROR( ERROR_OTHER );
+	return ret;
+}
+
+Bool
+gl_swap_buffers( Handle context)
+{
+	CLEAR_ERROR;
+	glXSwapBuffers( DISP, ctx-> window );
+	return true;
+}
+
+char *
+gl_error_string(char * buf, int len)
+{
+	switch ( last_error ) {
+	case 0:
+		return NULL;
+	case ERROR_CHOOSE_VISUAL:
+		return "glXChooseVisual: cannot find a requested GL visual";
+	case ERROR_CREATE_CONTEXT:
+		return "glXCreateContext error";
+	case ERROR_OTHER:
+		return "unknown error";
+	}
+}
+
+#ifdef __cplusplus
+}
+#endif
+

@@ -1,0 +1,13 @@
+Prima extension for OpenGL drawing.
+
+Works on win32 and x11, under cygwin works in x11 mode only ( possibly
+in win32 mode too, but I couldn't compile OpenGL under cygwin so it uses
+win32 API).
+
+Howto:
+
+    perl Makefile.PL
+    make 
+    make test
+    make install
+    perl examples/icosahedron.pl
