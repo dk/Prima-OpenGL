@@ -17,6 +17,63 @@ $VERSION = '0.01';
 
 bootstrap Prima::OpenGL $VERSION;
 
+package Prima::Drawable;
+
+# Now inject GL functions
+
+sub gl_create
+{
+	my ($self, %config) = @_;
+	die "already got GL context" if $self-> {__gl_context};
+	$self-> {__gl_context} = Prima::OpenGL::context_create($self, \%config);
+	warn Prima::OpenGL::last_error() unless $self-> {__gl_context};
+	return $self-> {__gl_context} ? 1 : 0;
+}
+
+sub gl_destroy
+{
+	my $self = shift;
+	Prima::OpenGL::context_destroy($self-> {__gl_context})
+		if $self-> {__gl_context};
+	undef $self-> {__gl_context};
+}
+
+sub gl_begin_paint
+{
+	my ( $self, %config ) = @_;
+	die "already in paint state" if $self-> {__gl_context};
+	$self-> gl_create( %config );
+	$self-> gl_select;
+}
+
+sub gl_end_paint
+{
+	my ( $self ) = @_;
+	$self-> gl_flush;
+	$self-> gl_destroy;
+}
+
+sub gl_paint_state
+{
+	return shift-> {__gl_context} ? 1 : 0;
+}
+
+sub gl_select
+{
+	my $ctx = shift-> {__gl_context};
+	Prima::OpenGL::context_make_current($ctx) if $ctx;
+}
+
+sub gl_unselect
+{
+	Prima::OpenGL::context_make_current(undef);
+}
+
+sub gl_flush
+{
+	my $ctx = shift-> {__gl_context};
+	Prima::OpenGL::flush($ctx) if $ctx;
+}
 __END__
 
 =pod
@@ -44,10 +101,6 @@ description below).  If an option is not set, or set to undef, system default
 is used.
 
 =over
-
-=item target ( "window" or "bitmap" )
-
-Prepares GL area for either on- or off-screen drawing. Might be extended later.
 
 =item render ( "direct" or "xserver" )
 
@@ -129,6 +182,51 @@ the minimum size is preferred.
 Call C<last_error> that returns string representation of the last error, or undef if there was none.
 Note that X11 errors are really unspecific due to asynchronous mode X server and clients operate; expect
 some generic error strings there.
+
+=back
+
+=head2 Prima::Drawable methods
+
+The module also injects a set of gl_ methods for general use on Widget, Application, DeviceBitmap, Image,
+and Printer (the latter on win32 only) objects.
+
+=over
+
+=item gl_create %config
+
+Creates a GL context and prepares it for drawing on the object.
+If the object is not a widget, it needs to be in C<begin_paint> state.
+See valid C<%config> values in L<Selection of a GL visual> .
+
+=item gl_destroy
+
+Destroys GL context. Note that it doesn't synchronize GL area content, one should do that manually using C<gl_flush>
+(and also remember to call glFinish when drawing on bitmaps!). Need to be always called otherwise GL contexts would leak.
+
+=item gl_begin_paint %config
+
+Shortcut for gl_create and gl_select. 
+See valid C<%config> values in L<Selection of a GL visual> .
+
+=item gl_end_state
+
+Shortcut for gl_flush and gl_destroy.
+
+=item gl_paint_state
+
+Returns boolean flag indicating whether the object is within gl_begin_paint/gl_end_paint state.
+
+=item gl_select
+
+Associates the widget visual with current GL context, so GL functions can be used on the widget.
+
+=item gl_unselect
+
+Disassociates any GL context.
+
+=item gl_flush
+
+Copies eventual off-screen GL buffer to the screen. Needs to be always called at the end of paint routine.
 
 =back
 

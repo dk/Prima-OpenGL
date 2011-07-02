@@ -2,8 +2,11 @@
 extern "C" {
 #endif
 
-#define GLREQ_TARGET_WINDOW     1
-#define GLREQ_TARGET_BITMAP     2
+#define GLREQ_TARGET_APPLICATION 0
+#define GLREQ_TARGET_WINDOW      1
+#define GLREQ_TARGET_BITMAP      2
+#define GLREQ_TARGET_IMAGE       3
+#define GLREQ_TARGET_PRINTER     4
 
 #define GLREQ_RENDER_DIRECT     1
 #define GLREQ_RENDER_XSERVER    2
@@ -54,7 +57,7 @@ Bool
 gl_context_make_current( Handle context);
 
 Bool
-gl_swap_buffers( Handle context);
+gl_flush( Handle context);
 
 char *
 gl_error_string(char * buf, int len);

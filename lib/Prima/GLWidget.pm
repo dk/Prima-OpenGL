@@ -13,9 +13,7 @@ sub profile_default
 {
 	my $def = $_[ 0]-> SUPER::profile_default;
 	my %prf = (
-		gl_config => {
-			target => 'window',
-		},
+		gl_config => {},
 	);
 	@$def{keys %prf} = values %prf;
 	return $def;
@@ -42,11 +40,11 @@ sub gl_config
 	return $_[0]-> {gl_config} unless $#_;
 	my ( $self, $config ) = @_;
 
-	Prima::OpenGL::context_destroy($self-> {gl_context}) if $self-> {gl_context};
-	$self-> {gl_config}  = $config;
-	$self-> {gl_context} = Prima::OpenGL::context_create($self, $config);
-	warn Prima::OpenGL::last_error unless $self-> {gl_context};
+	$self-> gl_destroy;
+	$self-> {__gl_config}  = $config;
+	$self-> gl_create( %$config );
 }
+
 
 sub on_paint
 {
@@ -61,29 +59,7 @@ sub on_size
 	glViewport(0,0,$x,$y);	
 }
 
-sub on_destroy
-{
-	my $self = shift;
-	Prima::OpenGL::context_destroy($self-> {gl_context});
-	undef $self-> {gl_context};
-}
-
-sub gl_select
-{
-	my $ctx = shift-> {gl_context};
-	Prima::OpenGL::context_make_current($ctx) if $ctx;
-}
-
-sub gl_unselect
-{
-	Prima::OpenGL::context_make_current(undef);
-}
-
-sub swap_buffers
-{
-	my $ctx = shift-> {gl_context};
-	Prima::OpenGL::swap_buffers($ctx) if $ctx;
-}
+sub on_destroy { shift-> gl_destroy }
 
 1;
 
@@ -116,7 +92,7 @@ Prima::GLWidget - general purpose GL drawing area / widget
 				glVertex2f( 0.5, 0.5);
 				glVertex2f( 0.5,-0.5);
 			glEnd();
-			$self-> swap_buffers;
+			$self-> gl_flush;
 		}
 	);
 
@@ -138,24 +114,6 @@ using C<gl> OpenGL functions.
 
 C<gl_config> contains requests to GL visual selector. See description of keys
 in L<Prima::OpenGL/Selection of a GL visual>.
-
-=back
-
-=head2 Methods
-
-=over
-
-=item gl_select
-
-Associates the widget visual with current GL context, so GL functions can be used on the widget.
-
-=item gl_unselect
-
-Disassociates any GL context.
-
-=item swap_buffers
-
-Copies eventual off-screen GL buffer to the screen. Needs to be always called at the end of paint routine.
 
 =back
 

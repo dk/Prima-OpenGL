@@ -118,7 +118,7 @@ gl_context_make_current( Handle context)
 }
 
 Bool
-gl_swap_buffers( Handle context)
+gl_flush( Handle context)
 {
 	CLEAR_ERROR;
 	glXSwapBuffers( DISP, ctx-> window );

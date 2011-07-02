@@ -1,10 +1,18 @@
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+#include <DeviceBitmap.h>
 #include <Widget.h>
+#include <Image.h>
+#include <Application.h>
+#include <Printer.h>
 #include "prima_gl.h"
 
 PWidget_vmt CWidget;
+PDeviceBitmap_vmt CDeviceBitmap;
+PImage_vmt CImage;
+PApplication_vmt CApplication;
+PPrinter_vmt CPrinter;
 #define var (( PWidget) widget)
 
 static void
@@ -55,8 +63,7 @@ parse( GLRequest * r, HV * attr)
 
 		if ( !SvOK( val )) continue; /* undef is default */
 
-		     PARSE_STR( target,  "window", "bitmap");
-		else PARSE_STR( render,  "direct", "xserver");
+		     PARSE_STR( render,  "direct", "xserver");
 		else PARSE_STR( pixels,  "rgba",   "palette");
 		else PARSE_INT( layer);
 		else PARSE_BOOL( double_buffer);
@@ -83,6 +90,10 @@ MODULE = Prima::OpenGL      PACKAGE = Prima::OpenGL
 BOOT:
 {
 	CWidget = (PWidget_vmt)gimme_the_vmt( "Prima::Widget");
+	CDeviceBitmap = (PDeviceBitmap_vmt)gimme_the_vmt( "Prima::DeviceBitmap");
+	CImage = (PImage_vmt)gimme_the_vmt( "Prima::Image");
+	CApplication = (PApplication_vmt)gimme_the_vmt( "Prima::Application");
+	CPrinter = (PPrinter_vmt)gimme_the_vmt( "Prima::Printer");
 }
 
 PROTOTYPES: ENABLE
@@ -92,17 +103,39 @@ context_create(sv,attributes)
 	SV *sv
 	HV *attributes
 PREINIT:
-	Handle widget;
+	Handle object;
 	Handle context;
 	GLRequest request;
+	Bool need_paint_state = 0;
 CODE:
 	RETVAL = 0;
-	widget = gimme_the_mate(sv);
-	if ( !widget || !kind_of( widget, CWidget))
-		croak("not a widget");
+	
+	if ( !(object = gimme_the_mate(sv)))
+		croak("not a object");
 
 	parse( &request, attributes);
-	context = gl_context_create(widget, &request);
+	if ( kind_of( object, CApplication)) {
+		request. target = GLREQ_TARGET_APPLICATION;
+		need_paint_state = 1;
+	}
+	else if ( kind_of( object, CWidget))
+		request. target = GLREQ_TARGET_WINDOW;
+	else if ( kind_of( object, CDeviceBitmap)) 
+		request. target = GLREQ_TARGET_BITMAP;
+	else if ( kind_of( object, CImage)) {
+		request. target = GLREQ_TARGET_IMAGE;
+		need_paint_state = 1;
+	}
+	else if ( kind_of( object, CPrinter)) {
+		request. target = GLREQ_TARGET_PRINTER;
+		need_paint_state = 1;
+	}
+	else
+		croak("bad object");
+
+	if ( need_paint_state && !PObject(object)-> options. optInDraw )
+		croak("object not in paint state");
+	context = gl_context_create(object, &request);
 
 	RETVAL = newSViv(context);
 OUTPUT:
@@ -122,10 +155,10 @@ CODE:
 	RETVAL = gl_context_make_current((Handle) context);
 
 int
-swap_buffers(context)
+flush(context)
 	void *context
 CODE:
-	RETVAL = context ? gl_swap_buffers((Handle) context) : 0;
+	RETVAL = context ? gl_flush((Handle) context) : 0;
 
 SV *
 last_error()

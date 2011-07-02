@@ -124,7 +124,7 @@ sub display
 	glPopMatrix();
 	
 	glFlush();
-	$wij-> swap_buffers;
+	$wij-> gl_flush;
 }
 
 sub reshape
