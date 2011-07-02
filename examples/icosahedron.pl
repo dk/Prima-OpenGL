@@ -17,6 +17,7 @@ The original example code can be found in OpenGL distribution in examples/light.
 use strict;
 use warnings;
 use lib '../lib', '../blib/arch';
+use lib 'lib', 'blib/arch';
 use Prima qw(Application Buttons GLWidget);
 use OpenGL qw(:glfunctions :glconstants);
 
