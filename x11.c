@@ -17,15 +17,18 @@ extern "C" {
 
 #define var (( PComponent) widget)
 #define ctx (( Context*) context)
+#define sys (( PDrawableSysData) var-> sysData)
 
 typedef struct {
-	Window window;
+	Drawable drawable;
 	GLXContext context;
+	Pixmap pixmap;
 } Context;
 
 #define ERROR_CHOOSE_VISUAL  1
 #define ERROR_CREATE_CONTEXT 2
 #define ERROR_OTHER          3
+#define ERROR_NO_PRINTER     4
 
 int last_error = 0;
 
@@ -41,6 +44,7 @@ gl_context_create( Handle widget, GLRequest * request)
 	Context * ret;
 
 	CLEAR_ERROR;
+	XCHECKPOINT;
 
 #define ATTR(in,out) \
 	if ( request-> in) { \
@@ -81,14 +85,34 @@ gl_context_create( Handle widget, GLRequest * request)
 		return (Handle) 0;
 	}
 
+	XCHECKPOINT;
 	if ( !( context = glXCreateContext( DISP, visual, 0, request-> render != GLREQ_RENDER_XSERVER))) {
 		SET_ERROR( ERROR_CREATE_CONTEXT );
 		return (Handle) 0;
 	}
 
 	ret = malloc( sizeof( Context ));
+	memset( ret, 0, sizeof( Context));
 	ret-> context  = context;
-	ret-> window   = var-> handle;
+
+	switch ( request-> target) {
+	case GLREQ_TARGET_WINDOW:
+		ret-> drawable   = var-> handle;
+		break;
+	case GLREQ_TARGET_APPLICATION:
+		/* doesn't work with gnome and kde anyway */
+		ret-> drawable   = RootWindow( DISP, SCREEN);
+		break;
+	case GLREQ_TARGET_BITMAP:
+	case GLREQ_TARGET_IMAGE:
+		XCHECKPOINT;
+		ret-> pixmap     = glXCreateGLXPixmap( DISP, visual, sys-> gdrawable);
+		ret-> drawable   = sys-> gdrawable;
+		break;
+	case GLREQ_TARGET_PRINTER:
+		SET_ERROR(ERROR_NO_PRINTER);
+		return 0;
+	}
 
 	return (Handle) ret;
 }
@@ -97,8 +121,11 @@ void
 gl_context_destroy( Handle context)
 {
 	CLEAR_ERROR;
+	XCHECKPOINT;
 	if ( glXGetCurrentContext() == ctx-> context) 
 		glXMakeCurrent( DISP, 0, NULL);
+	if ( ctx-> pixmap)
+		glXDestroyGLXPixmap( DISP, ctx-> pixmap);
 	glXDestroyContext( DISP, ctx-> context );
 	free(( void*)  ctx );
 }
@@ -108,8 +135,9 @@ gl_context_make_current( Handle context)
 {
 	Bool ret;
 	CLEAR_ERROR;
+	XCHECKPOINT;
 	if ( context ) {
-		ret = glXMakeCurrent( DISP, ctx-> window, ctx-> context);
+		ret = glXMakeCurrent( DISP, ctx-> drawable, ctx-> context);
 	} else {
 		ret = glXMakeCurrent( DISP, 0, NULL );
 	}
@@ -121,7 +149,8 @@ Bool
 gl_flush( Handle context)
 {
 	CLEAR_ERROR;
-	glXSwapBuffers( DISP, ctx-> window );
+	XCHECKPOINT;
+	glXSwapBuffers( DISP, ctx-> drawable );
 	return true;
 }
 
@@ -137,6 +166,8 @@ gl_error_string(char * buf, int len)
 		return "glXCreateContext error";
 	case ERROR_OTHER:
 		return "unknown error";
+	case ERROR_NO_PRINTER:
+		return "No printer support on X11";
 	}
 }
 

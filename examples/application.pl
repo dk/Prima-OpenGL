@@ -7,9 +7,8 @@ use Prima::OpenGL;
 use Prima::Application;
 
 $::application-> begin_paint;
-my $ctx = Prima::OpenGL::context_create($::application, {});
-die Prima::OpenGL::last_error unless $ctx;
-Prima::OpenGL::context_make_current($ctx);
+$::application-> gl_begin_paint;
+$::application-> line(0,0,1000,1000);
 
 glViewport(100, 100, 200, 200);
 glClearColor(0,0,1,1);
@@ -24,8 +23,7 @@ glBegin(GL_POLYGON);
 	glVertex2f( 0.5,-0.5);
 glEnd();
 glFinish();
-Prima::OpenGL::flush($ctx);
+$::application-> gl_end_paint;
 $::application-> end_paint;
-Prima::OpenGL::context_destroy($ctx);
 
 
