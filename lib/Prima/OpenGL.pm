@@ -66,7 +66,7 @@ sub gl_select
 
 sub gl_unselect
 {
-	Prima::OpenGL::context_make_current(undef);
+	Prima::OpenGL::context_make_current(0);
 }
 
 sub gl_flush
@@ -200,8 +200,10 @@ See valid C<%config> values in L<Selection of a GL visual> .
 
 =item gl_destroy
 
-Destroys GL context. Note that it doesn't synchronize GL area content, one should do that manually using C<gl_flush>
-(and also remember to call glFinish when drawing on bitmaps!). Need to be always called otherwise GL contexts would leak.
+Destroys GL context. Note that it doesn't synchronize GL area content, one
+should do that manually using C<gl_flush> (and also remember to call glFinish
+when drawing on bitmaps!). Need to be always called otherwise GL contexts would
+leak.
 
 =item gl_begin_paint %config
 

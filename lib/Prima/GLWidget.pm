@@ -33,7 +33,21 @@ sub init
 	$self-> {gl_config} = {};
 	%profile = $self-> SUPER::init( %profile);	
 	$self-> gl_config($profile{gl_config});
-}	
+}
+
+sub notify
+{
+	my ( $self, $command, @params ) = @_;
+		
+	return $self-> SUPER::notify( $command, @params )
+		unless $command eq 'Paint';
+
+	$self-> gl_select;
+	my $ret = $self-> SUPER::notify( $command, @params );
+	$self-> gl_flush;
+	$self-> gl_unselect;
+	return $ret;
+}
 
 sub gl_config
 {
@@ -43,13 +57,6 @@ sub gl_config
 	$self-> gl_destroy;
 	$self-> {__gl_config}  = $config;
 	$self-> gl_create( %$config );
-}
-
-
-sub on_paint
-{
-	my ( $self, $canvas ) = @_;
-	$self-> gl_select;
 }
 
 sub on_size
@@ -92,7 +99,6 @@ Prima::GLWidget - general purpose GL drawing area / widget
 				glVertex2f( 0.5, 0.5);
 				glVertex2f( 0.5,-0.5);
 			glEnd();
-			$self-> gl_flush;
 		}
 	);
 
