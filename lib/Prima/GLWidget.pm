@@ -55,7 +55,7 @@ sub gl_config
 	my ( $self, $config ) = @_;
 
 	$self-> gl_destroy;
-	$self-> {__gl_config}  = $config;
+	$self-> {gl_config}  = $config;
 	$self-> gl_create( %$config );
 }
 
