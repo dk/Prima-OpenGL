@@ -45,7 +45,8 @@ if (
 	$^O eq 'MSWin32' or 
 	( $^O eq 'cygwin' and $Prima::Config::Config{platform} eq 'win32')
 ) {
-	push @libs, '-lopengl32';
+	push @libs, '-L/lib/w32api' if $^O eq 'cygwin';
+	push @libs, '-lopengl32 -lgdi32';
 	push @obj,  'win32.o';
 } else {
 	push @libs, '-lGL';
