@@ -31,6 +31,7 @@ typedef struct {
 #define ERROR_NO_PRINTER     4
 
 int last_error = 0;
+UnixGuts * pguts;
 
 #define CLEAR_ERROR  last_error = 0
 #define SET_ERROR(s) last_error = s
@@ -42,6 +43,9 @@ gl_context_create( Handle widget, GLRequest * request)
 	XVisualInfo * visual;
 	GLXContext context;
 	Context * ret;
+
+	if ( pguts == NULL )
+		pguts = (UnixGuts*) apc_system_action("unix_guts");
 
 	CLEAR_ERROR;
 	XCHECKPOINT;
