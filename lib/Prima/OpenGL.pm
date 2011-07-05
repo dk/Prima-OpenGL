@@ -210,7 +210,7 @@ leak.
 Shortcut for gl_create and gl_select. 
 See valid C<%config> values in L<Selection of a GL visual> .
 
-=item gl_end_state
+=item gl_end_paint
 
 Shortcut for gl_flush and gl_destroy.
 
