@@ -58,6 +58,7 @@ push @libs, $l;
 WriteMakefile(
 	NAME              => 'Prima::OpenGL',
 	VERSION_FROM      => 'lib/Prima/OpenGL.pm',
+	MIN_PERL_VERSION  => '5.008',
 	PREREQ_PM         => {
 		'Prima'		=> '1.30',
 		'OpenGL'	=> 0.64,

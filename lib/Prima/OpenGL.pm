@@ -243,7 +243,7 @@ L<Prima>, L<OpenGL>
 
    git clone git@github.com:dk/Prima-OpenGL.git
 
-=head1 COPYRIGHT
+=head1 LICENSE
 
 This software is distributed under the BSD License.
 
