@@ -1,8 +1,6 @@
 Prima extension for OpenGL drawing.
 
-Works on win32 and x11, under cygwin works in x11 mode only ( possibly
-in win32 mode too, but I couldn't compile OpenGL under cygwin so it uses
-win32 API).
+Works on win32, cygwin and x11. To use in cygwin/x11 mode recompile Prima with CYGWIN_X11=1
 
 Howto:
 
@@ -11,3 +9,9 @@ Howto:
     make test
     make install
     perl examples/icosahedron.pl
+
+Whereto:
+ 
+    https://github.com/dk/Prima-OpenGL
+
+Dmitry Karasik, 2011
