@@ -10,7 +10,7 @@ my $x = Prima::DeviceBitmap-> new(
 	width => 100,
 	height => 100,
 );
-$x-> gl_begin_paint;
+exit unless $x-> gl_begin_paint;
 
 glClearColor(0,0,1,1);
 glClear(GL_COLOR_BUFFER_BIT);
@@ -26,5 +26,3 @@ glEnd();
 glFinish();
 $x-> gl_end_paint;
 $x-> image-> save( 'a.png');
-
-

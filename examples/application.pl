@@ -7,7 +7,8 @@ use Prima::OpenGL;
 use Prima::Application;
 
 $::application-> begin_paint;
-$::application-> gl_begin_paint;
+exit unless $::application-> gl_begin_paint;
+
 $::application-> line(0,0,1000,1000);
 
 glViewport(100, 100, 200, 200);

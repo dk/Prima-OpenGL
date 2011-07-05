@@ -12,7 +12,7 @@ my $x = Prima::Image-> new(
 	type => im::RGB,
 );
 $x-> begin_paint;
-$x-> gl_begin_paint;
+exit unless $x-> gl_begin_paint;
 
 glClearColor(0,0,1,1);
 glClear(GL_COLOR_BUFFER_BIT);

@@ -42,8 +42,9 @@ sub gl_begin_paint
 {
 	my ( $self, %config ) = @_;
 	die "already in paint state" if $self-> {__gl_context};
-	$self-> gl_create( %config );
+	my $ret = $self-> gl_create( %config );
 	$self-> gl_select;
+	return $ret;
 }
 
 sub gl_end_paint
