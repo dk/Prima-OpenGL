@@ -29,6 +29,7 @@ typedef struct {
 #define ERROR_CREATE_CONTEXT 2
 #define ERROR_OTHER          3
 #define ERROR_NO_PRINTER     4
+#define ERROR_NO_PIXMAPS     5
 
 int last_error = 0;
 UnixGuts * pguts;
@@ -108,11 +109,32 @@ gl_context_create( Handle widget, GLRequest * request)
 		ret-> drawable   = RootWindow( DISP, SCREEN);
 		break;
 	case GLREQ_TARGET_BITMAP:
-	case GLREQ_TARGET_IMAGE:
+	case GLREQ_TARGET_IMAGE: 
+	{
+		GLXContext  old_context;
+		GLXDrawable old_drawable;
+		Bool success;
 		XCHECKPOINT;
-		ret-> pixmap     = glXCreateGLXPixmap( DISP, visual, sys-> gdrawable);
+
 		ret-> drawable   = sys-> gdrawable;
+		ret-> pixmap     = glXCreateGLXPixmap( DISP, visual, sys-> gdrawable);
+
+		/* check if pixmaps are supported on this visual at all */
+		old_context  = glXGetCurrentContext();
+		old_drawable = glXGetCurrentDrawable();
+		success = glXMakeCurrent( DISP, ctx-> drawable, ctx-> context);
+		glXMakeCurrent( DISP, old_drawable, old_context);
+		if ( !success ) {
+			SET_ERROR( ERROR_NO_PIXMAPS );
+			glXDestroyGLXPixmap( DISP, ret-> pixmap);
+			glXDestroyContext( DISP, ret-> context );
+			free(ret);
+			return 0;
+		}
+
+
 		break;
+	}
 	case GLREQ_TARGET_PRINTER:
 		SET_ERROR(ERROR_NO_PRINTER);
 		return 0;
@@ -172,6 +194,8 @@ gl_error_string(char * buf, int len)
 		return "unknown error";
 	case ERROR_NO_PRINTER:
 		return "No printer support on X11";
+	case ERROR_NO_PIXMAPS:
+		return "Pixmaps are unsupported on this GL visual";
 	}
 }
 

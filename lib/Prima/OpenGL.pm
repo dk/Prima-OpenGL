@@ -42,8 +42,9 @@ sub gl_begin_paint
 {
 	my ( $self, %config ) = @_;
 	die "already in paint state" if $self-> {__gl_context};
-	$self-> gl_create( %config );
+	my $ret = $self-> gl_create( %config );
 	$self-> gl_select;
+	return $ret;
 }
 
 sub gl_end_paint
@@ -242,7 +243,7 @@ L<Prima>, L<OpenGL>
 
    git clone git@github.com:dk/Prima-OpenGL.git
 
-=head1 COPYRIGHT
+=head1 LICENSE
 
 This software is distributed under the BSD License.
 
