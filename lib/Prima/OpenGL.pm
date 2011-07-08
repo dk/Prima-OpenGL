@@ -75,6 +75,29 @@ sub gl_flush
 	my $ctx = shift-> {__gl_context};
 	Prima::OpenGL::flush($ctx) if $ctx;
 }
+
+sub gl_do
+{
+	my ( $self, $sub, @param ) = @_;
+	unless ( Prima::OpenGL::context_push()) {
+		warn Prima::OpenGL::last_error();
+		return;
+	}
+	$self-> gl_select;
+	my ($fail, @ret);
+	eval { 
+		if (wantarray) {
+			@ret    = $sub->(@param);
+		} else {
+			$ret[0] = $sub->(@param);
+		}
+	};
+	Prima::OpenGL::context_pop();
+	$fail = $@;
+	die $fail if $fail;
+	return wantarray ? @ret : $ret[0];
+}
+
 __END__
 
 =pod
@@ -178,6 +201,15 @@ the minimum size is preferred.
 
 =over
 
+=item context_push
+
+Pushes the current GL context on an internal stack; there can be only 32 entries. Returns success flag.
+
+=item context_pop
+
+Pops the top GL context from the stack, and selects it. Returns success flag.
+
+
 =item last_error
 
 Call C<last_error> that returns string representation of the last error, or undef if there was none.
@@ -226,6 +258,10 @@ Associates the widget visual with current GL context, so GL functions can be use
 =item gl_unselect
 
 Disassociates any GL context.
+
+=item gl_do &SUB
+
+Executes &SUB within current GL context, restores context after the SUB is finished.
 
 =item gl_flush
 

@@ -25,11 +25,22 @@ typedef struct {
 	Pixmap pixmap;
 } Context;
 
-#define ERROR_CHOOSE_VISUAL  1
-#define ERROR_CREATE_CONTEXT 2
-#define ERROR_OTHER          3
-#define ERROR_NO_PRINTER     4
-#define ERROR_NO_PIXMAPS     5
+typedef struct {
+	GLXDrawable drawable;
+	GLXContext  context;
+} ContextStackEntry;
+
+ContextStackEntry stack[CONTEXT_STACK_SIZE];
+int               stack_ptr = 0;
+
+
+#define ERROR_CHOOSE_VISUAL   1
+#define ERROR_CREATE_CONTEXT  2
+#define ERROR_OTHER           3 
+#define ERROR_NO_PRINTER      4
+#define ERROR_NO_PIXMAPS      5
+#define ERROR_STACK_UNDERFLOW 6
+#define ERROR_STACK_OVERFLOW  7
 
 int last_error = 0;
 UnixGuts * pguts;
@@ -180,6 +191,32 @@ gl_flush( Handle context)
 	return true;
 }
 
+int 
+gl_context_push(void)
+{
+	CLEAR_ERROR;
+	if ( stack_ptr >= CONTEXT_STACK_SIZE ) {
+		SET_ERROR( ERROR_STACK_OVERFLOW );
+		return 0;
+	}
+	stack[stack_ptr].context  = glXGetCurrentContext();
+	stack[stack_ptr].drawable = glXGetCurrentDrawable();
+	stack_ptr++;
+	return 1;
+}
+
+int 
+gl_context_pop(void)
+{
+	CLEAR_ERROR;
+	if ( stack_ptr <= 0) {
+		SET_ERROR( ERROR_STACK_UNDERFLOW );
+		return 0;
+	}
+	stack_ptr++;
+	return glXMakeCurrent( DISP, stack[stack_ptr].drawable, stack[stack_ptr].context);
+}
+
 char *
 gl_error_string(char * buf, int len)
 {
@@ -196,6 +233,10 @@ gl_error_string(char * buf, int len)
 		return "No printer support on X11";
 	case ERROR_NO_PIXMAPS:
 		return "Pixmaps are unsupported on this GL visual";
+	case ERROR_STACK_UNDERFLOW:
+		return "No GL contexts on stack";
+	case ERROR_STACK_OVERFLOW:
+		return "No more space for GL contexts on stack";
 	}
 }
 

@@ -29,6 +29,7 @@ my $spin          = 0;
 my $grab          = 0;
 my $frame_color   = 1;
 my $top;
+my $wij;
 
 sub icosahedron
 {
@@ -146,17 +147,16 @@ $top = Prima::MainWindow-> new(
 			}],
 			['*' => '~Lightning' => sub { 
 				$use_lighting = $_[0]-> menu-> toggle( $_[1] );
-				init();
+				$wij-> gl_do( sub { init });
 			}],
 			['*' => '~Frame' => sub { 
 				$use_frame = $_[0]-> menu-> toggle( $_[1] );
-				init();
 			}],
 		]],
 	],
 );
 
-my $wij = $top-> insert( 'Prima::GLWidget' => 
+$wij = $top-> insert( 'Prima::GLWidget' => 
 	pack      => { expand => 1, fill => 'both'},
 	gl_config => { double_buffer => 1, depth_bits => 16 },
 	onCreate  => sub {

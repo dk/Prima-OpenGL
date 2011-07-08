@@ -59,8 +59,16 @@ gl_context_make_current( Handle context);
 Bool
 gl_flush( Handle context);
 
+int 
+gl_context_push(void);
+
+int 
+gl_context_pop(void);
+
 char *
 gl_error_string(char * buf, int len);
+
+#define CONTEXT_STACK_SIZE 32
 
 #ifdef __cplusplus
 }
