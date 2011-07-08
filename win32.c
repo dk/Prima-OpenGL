@@ -386,7 +386,7 @@ gl_context_pop(void)
 		return 0;
 	}
 	stack_ptr++;
-	return wglMakeCurrent( DISP, stack[stack_ptr].dc, stack[stack_ptr].gl);
+	return wglMakeCurrent( stack[stack_ptr].dc, stack[stack_ptr].gl);
 }
 
 #ifdef __cplusplus
