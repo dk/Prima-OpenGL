@@ -155,6 +155,16 @@ CODE:
 	RETVAL = gl_context_make_current((Handle) context);
 
 int
+context_push()
+CODE:
+	RETVAL = gl_context_push();
+
+int
+context_pop()
+CODE:
+	RETVAL = gl_context_pop();
+
+int
 flush(context)
 	void *context
 CODE:

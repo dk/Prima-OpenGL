@@ -17,6 +17,15 @@ extern "C" {
 #define ctx (( Context*) context)
 
 typedef struct {
+	HDC dc;
+	HGLRC gl;
+} ContextStackEntry;
+
+ContextStackEntry stack[CONTEXT_STACK_SIZE];
+int               stack_ptr = 0;
+
+
+typedef struct {
 	HDC   dc;
 	HGLRC gl;
 	HWND  wnd;
@@ -349,6 +358,35 @@ gl_error_string(char * buf, int len)
 	
 	snprintf( buf, len, "%s error: %s", last_failed_func, localbuf);
 	return buf;
+}
+
+int 
+gl_context_push(void)
+{
+	CLEAR_ERROR;
+	if ( stack_ptr >= CONTEXT_STACK_SIZE ) {
+		last_error_code  = 1001; /* win32 native error ERROR_STACK_OVERFLOW */
+		last_failed_func = "gl_context_push";
+		return 0;
+	}
+
+	stack[stack_ptr].gl = wglGetCurrentContext();
+	stack[stack_ptr].dc = wglGetCurrentDC();
+	stack_ptr++;
+	return 1;
+}
+
+int 
+gl_context_pop(void)
+{
+	CLEAR_ERROR;
+	if ( stack_ptr <= 0) {
+		last_error_code  = 1001; /* win32 native error ERROR_STACK_OVERFLOW */
+		last_failed_func = "gl_context_pop";
+		return 0;
+	}
+	stack_ptr++;
+	return wglMakeCurrent( DISP, stack[stack_ptr].dc, stack[stack_ptr].gl);
 }
 
 #ifdef __cplusplus
