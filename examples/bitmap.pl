@@ -25,4 +25,5 @@ glBegin(GL_POLYGON);
 glEnd();
 glFinish();
 $x-> gl_end_paint;
-$x-> image-> save( 'a.png');
+$x-> image-> save( 'a.png') or die "Cannot save image:$@";
+print "a.png saved ok\n";

@@ -28,6 +28,7 @@ glEnd();
 glFinish();
 $x-> gl_end_paint;
 $x-> end_paint;
-$x-> save( 'a.png');
+$x-> save( 'a.png') or die "Cannot save image:$@";
+print "a.png saved ok\n";
 
 
