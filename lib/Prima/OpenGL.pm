@@ -141,6 +141,16 @@ created.  Direct rendering provides a performance advantage in some
 implementations.  However, direct rendering contexts cannot be shared outside a
 single process, and they may be unable to render to GLX
 
+I here may add that you I needed that option when was testing cygwin
+implementation of the module in no-X11 environment. I couldn't get my X11
+working on windows, and installed one under VirtualBox.  However, the only way
+I could connect to X server there was to tell VirtualBox to forward the port
+6000 inside the emulator to the host machine's 6000. GLX was happy finding that
+the connection was local, and tried to use shared memory or whatever underlies
+"direct" connection, and failed, instead of doing a soft fall-back to x11
+protocol. The only way to make it work in such condition was explicitly setting
+config to "xserver".
+
 Actual for x11 only.
 
 =item pixels ( "rgba" or "paletted" )
