@@ -96,11 +96,11 @@ sub init
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		glDepthFunc(GL_LESS);
-		glEnable(GL_DEPTH_TEST);
 	} else {
 		glDisable(GL_LIGHTING);
 		glDisable(GL_LIGHT0);
 	}
+	glEnable(GL_DEPTH_TEST);
 } 
 
 sub display
@@ -147,14 +147,14 @@ sub create_window
 		text => 'OpenGL example',
 		menuItems => [
 			['~Options' => [
-				['*' => '~Rotate' => sub { 
+				['*' => '~Rotate' => 'Ctrl+R' => '^R' => sub { 
 					$config{use_rotation} = $_[0]-> menu-> toggle( $_[1] );
 				}],
-				['*' => '~Lightning' => sub { 
+				['*' => '~Lightning' => 'Ctrl+L' => '^L' => sub { 
 					$config{use_lighting} = $_[0]-> menu-> toggle( $_[1] );
-					$config{widget}-> gl_do( sub { init });
+					$config{widget}-> gl_do( sub { init(\%config) });
 				}],
-				['*' => '~Frame' => sub { 
+				['*' => '~Frame' => 'Ctrl+F' => '^F' => sub { 
 					$config{use_frame} = $_[0]-> menu-> toggle( $_[1] );
 				}],
 			]],
