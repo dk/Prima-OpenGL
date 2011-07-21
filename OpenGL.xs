@@ -153,22 +153,30 @@ context_make_current(context)
 	void *context
 CODE:
 	RETVAL = gl_context_make_current((Handle) context);
+OUTPUT:
+	RETVAL
 
 int
 context_push()
 CODE:
 	RETVAL = gl_context_push();
+OUTPUT:
+	RETVAL
 
 int
 context_pop()
 CODE:
 	RETVAL = gl_context_pop();
+OUTPUT:
+	RETVAL
 
 int
 flush(context)
 	void *context
 CODE:
 	RETVAL = context ? gl_flush((Handle) context) : 0;
+OUTPUT:
+	RETVAL
 
 SV *
 last_error()
