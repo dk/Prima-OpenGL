@@ -213,7 +213,7 @@ gl_context_pop(void)
 		SET_ERROR( ERROR_STACK_UNDERFLOW );
 		return 0;
 	}
-	stack_ptr++;
+	stack_ptr--;
 	return glXMakeCurrent( DISP, stack[stack_ptr].drawable, stack[stack_ptr].context);
 }
 

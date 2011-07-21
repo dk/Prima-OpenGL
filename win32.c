@@ -385,7 +385,7 @@ gl_context_pop(void)
 		last_failed_func = "gl_context_pop";
 		return 0;
 	}
-	stack_ptr++;
+	stack_ptr--;
 	return wglMakeCurrent( stack[stack_ptr].dc, stack[stack_ptr].gl);
 }
 
