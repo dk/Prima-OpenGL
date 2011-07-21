@@ -21,18 +21,10 @@ use lib 'lib', 'blib/arch';
 use Prima qw(Application Buttons GLWidget);
 use OpenGL qw(:glfunctions :glconstants);
 
-my $use_lighting  = 1;
-my $use_frame     = 1;
-my $use_rotation  = 1;
-
-my $spin          = 0;
-my $grab          = 0;
-my $frame_color   = 1;
-my $top;
-my $wij;
-
 sub icosahedron
 {
+	my $config = shift;
+
 	# from OpenGL Programming Guide page 56
 	my $x = 0.525731112119133606;
 	my $z = 0.850650808352039932;
@@ -68,16 +60,16 @@ sub icosahedron
 	for ( my $i = 0; $i < 20; $i++) {
 		glBegin(GL_POLYGON);
 		for ( my $j = 0; $j < 3; $j++) {
-			$use_lighting || glColor3f(0,$i/19.0,$j/2.0);
+			$config-> {use_lighting} || glColor3f(0,$i/19.0,$j/2.0);
 			glNormal3f( @{$v[$t[$i][$j]]});
 			glVertex3f( @{$v[$t[$i][$j]]});
 		}
 		glEnd();
 
-		if( $use_frame){
+		if ( $config-> {use_frame}){
 			glPushAttrib(GL_ALL_ATTRIB_BITS);
 			glDisable(GL_LIGHTING);
-			glColor3f($frame_color,0,0);
+			glColor3f($config-> {frame_color},0,0);
 			glBegin(GL_LINE_LOOP);
 			glVertex3f( map { 1.01 * $_ } @{$v[$_]}) for @{$t[$i]};
 			glEnd();
@@ -88,7 +80,8 @@ sub icosahedron
 
 sub init
 {
-	if ( $use_lighting ) {
+	my $config = shift;
+	if ( $config-> {use_lighting} ) {
 		# Initialize material property, light source, lighting model, 
 		# and depth buffer.
 		my @mat_specular = ( 1.0, 1.0, 0.0, 1.0 );
@@ -112,17 +105,17 @@ sub init
 
 sub display
 {
-	my $wij = shift;
+	my $config = shift;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix();
-	glRotatef(23*sin($spin*3.14/180),1,0,0);
-	glRotatef($spin,0,1,0);
-	if ( $grab ) {
-		my ( $x, $y ) = $wij-> pointerPos;
+	glRotatef(23*sin($config-> {spin}*3.14/180),1,0,0);
+	glRotatef($config-> {spin},0,1,0);
+	if ( $config-> {grab} ) {
+		my ( $x, $y ) = $config-> {widget}-> pointerPos;
 		glRotatef( $x, 0, 1, 0);
 		glRotatef( $y, 1, 0, 0);
 	}		
-	icosahedron;
+	icosahedron($config);
 	glPopMatrix();
 	
 	glFlush();
@@ -137,55 +130,71 @@ sub reshape
 	glLoadIdentity();
 }
 
-$top = Prima::MainWindow-> new(
-	size => [ 300, 300 ],
-	text => 'OpenGL example',
-	menuItems => [
-		['~Options' => [
-			['*' => '~Rotate' => sub { 
-				$use_rotation = $_[0]-> menu-> toggle( $_[1] );
-			}],
-			['*' => '~Lightning' => sub { 
-				$use_lighting = $_[0]-> menu-> toggle( $_[1] );
-				$wij-> gl_do( sub { init });
-			}],
-			['*' => '~Frame' => sub { 
-				$use_frame = $_[0]-> menu-> toggle( $_[1] );
-			}],
-		]],
-	],
-);
+sub create_window
+{
+	my %config = (
+		use_lighting  => 1,
+		use_frame     => 1,
+		use_rotation  => 1,
+		spin          => 0,
+		grab          => 0,
+		frame_color   => 1,
+		widget        => undef,
+	);		
 
-$wij = $top-> insert( 'Prima::GLWidget' => 
-	pack      => { expand => 1, fill => 'both'},
-	gl_config => { double_buffer => 1, depth_bits => 16 },
-	onCreate  => sub {
-		shift-> gl_select;
-		init();
-		reshape();
-		glEnable(GL_DEPTH_TEST);
-		glRotatef(0.12,1,0,0);
-	},
-	onPaint      => sub {
-		display($_[0]);
-	},
-	onMouseDown  => sub { $grab = 1 },
-	onMouseUp    => sub { $grab = 0 },
-);
+	my $top = Prima::MainWindow-> new(
+		size => [ 300, 300 ],
+		text => 'OpenGL example',
+		menuItems => [
+			['~Options' => [
+				['*' => '~Rotate' => sub { 
+					$config{use_rotation} = $_[0]-> menu-> toggle( $_[1] );
+				}],
+				['*' => '~Lightning' => sub { 
+					$config{use_lighting} = $_[0]-> menu-> toggle( $_[1] );
+					$config{widget}-> gl_do( sub { init });
+				}],
+				['*' => '~Frame' => sub { 
+					$config{use_frame} = $_[0]-> menu-> toggle( $_[1] );
+				}],
+			]],
+			[],
+			['~Clone' => \&create_window ],
+		],
+	);
+	
+	$config{widget} = $top-> insert( 'Prima::GLWidget' => 
+		pack      => { expand => 1, fill => 'both'},
+		gl_config => { double_buffer => 1, depth_bits => 16 },
+		onCreate  => sub {
+			shift-> gl_select;
+			init(\%config);
+			reshape(\%config);
+			glEnable(GL_DEPTH_TEST);
+			glRotatef(0.12,1,0,0);
+		},
+		onPaint      => sub {
+			display(\%config);
+		},
+		onMouseDown  => sub { $config{grab} = 1 },
+		onMouseUp    => sub { $config{grab} = 0 },
+	);
+	
+	$top-> insert( Timer => 
+		timeout => 5,
+		onTick  => sub {
+			$config{spin}++ if $config{use_rotation} and not $config{grab};
+			$config{frame_color} = 1 if ($config{frame_color} -= 0.005) < 0;
+			$config{widget}-> repaint;
+		}
+	)-> start;
+	
+	$top-> insert( Button => 
+		origin  => [ 5, 5 ],
+		text    => '~Quit',
+		onClick => sub { $::application-> close },
+	);
+}
 
-$top-> insert( Timer => 
-	timeout => 5,
-	onTick  => sub {
-		$spin++ if $use_rotation and not $grab;
-		$frame_color = 1 if ($frame_color -= 0.005) < 0;
-		$wij-> repaint;
-	}
-)-> start;
-
-$top-> insert( Button => 
-	origin  => [ 5, 5 ],
-	text    => '~Quit',
-	onClick => sub { $::application-> close },
-);
-
+create_window;
 run Prima;
