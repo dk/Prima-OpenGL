@@ -1,5 +1,4 @@
-Revision history for Perl extension Prima::OpenGL
+0.02  - basic concept tested, works with latest OpenGL and Prima
 
-0.01  30-06-2011
-	- original version created
+0.01  - original version created
 
