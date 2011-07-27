@@ -1,11 +1,13 @@
 # $Id$
 package MY;
+use strict;
 use ExtUtils::MakeMaker;
 use Config;
 
 my ( $i, $d, $l) = ('','','');
 my $severe = grep { $_ eq '--severe' } @ARGV;
 @ARGV      = grep { $_ ne '--severe' } @ARGV;
+my $req_failed;
 eval { 
 	require Prima::Config;
 	$d  = $Prima::Config::Config{define};
@@ -15,19 +17,33 @@ eval {
 if ( $@) {
 	warn "** Prima is required for build\n";
 	if ( $severe) {
+		warn "If you see this under CPAN automatic build, please contact me. Should never happen.\n";
 		unlink 'Makefile';
 		exit 1;
 	}
-	$prima_failed = 1;
+	$req_failed = 1;
 }
 
-$prima_failed = 1 if @ARGV;
+eval { 
+	require OpenGL::Config;
+	$i .= " $OpenGL::Config->{INC}";
+};
+if ( $@) {
+	warn "** OpenGL is required for build\n";
+	if ( $severe) {
+		unlink 'Makefile';
+		exit 1;
+	}
+	$req_failed = 1;
+}
+
+$req_failed = 1 if @ARGV;
 
 sub post_initialize
 {
 	my $self = shift;
 	my $t = $self->SUPER::post_initialize(@_);
-	$t = <<PRE if $prima_failed;
+	$t = <<PRE if $req_failed;
 
 init_state:
 	$^X Makefile.PL --severe
