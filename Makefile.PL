@@ -11,7 +11,7 @@ my $req_failed;
 eval { 
 	require Prima::Config;
 	$d  = $Prima::Config::Config{define};
-	$i  = "$Prima::Config::Config{inc} -Iinclude -Iinclude/generic";
+	$i  = $Prima::Config::Config{inc};
 	$l  = $Prima::Config::Config{libs};
 };
 if ( $@) {
@@ -81,9 +81,9 @@ WriteMakefile(
 	},
 	ABSTRACT_FROM     => 'lib/Prima/OpenGL.pm',
 	AUTHOR            => 'Dmitry Karasik <dmitry@karasik.eu.org>',
-	LIBS              => join(' ', @libs),
+	LIBS              => "@libs",
 	DEFINE            => $d,
-	INC               => $i,
-	OBJECT            => join(' ', @obj),
+	INC               => "$i -Iinclude",
+	OBJECT            => "@obj",
 );
 
