@@ -3,59 +3,10 @@ package MY;
 use strict;
 use ExtUtils::MakeMaker;
 use Config;
-
-my ( $i, $d, $l) = ('','','');
-my $severe = grep { $_ eq '--severe' } @ARGV;
-@ARGV      = grep { $_ ne '--severe' } @ARGV;
-my $req_failed;
-eval { 
-	require Prima::Config;
-	$d  = $Prima::Config::Config{define};
-	$i  = $Prima::Config::Config{inc};
-	$l  = $Prima::Config::Config{libs};
-};
-if ( $@) {
-	warn "** Prima is required for build\n";
-	if ( $severe) {
-		warn "If you see this under CPAN automatic build, please contact me. Should never happen.\n";
-		unlink 'Makefile';
-		exit 1;
-	}
-	$req_failed = 1;
-}
-
-eval { 
-	require OpenGL::Config;
-	$i .= " $OpenGL::Config->{INC}";
-};
-if ( $@) {
-	warn "** OpenGL is required for build\n";
-	if ( $severe) {
-		unlink 'Makefile';
-		exit 1;
-	}
-	$req_failed = 1;
-}
-
-$req_failed = 1 if @ARGV;
-
-sub post_initialize
-{
-	my $self = shift;
-	my $t = $self->SUPER::post_initialize(@_);
-	$t = <<PRE if $req_failed;
-
-init_state:
-	$^X Makefile.PL --severe
-	$Config{make}
-
-PRE
-	return $t;
-}
+use Prima::Config;
 
 my @libs;
 my @obj  = ('OpenGL.o');
-
 
 if ( 
 	$^O eq 'MSWin32' or 
@@ -69,21 +20,23 @@ if (
 	push @obj,  'x11.o';
 }
 
-push @libs, $l;
+push @libs, $Prima::Config::Config{libs};
 
 WriteMakefile(
-	NAME              => 'Prima::OpenGL',
-	VERSION_FROM      => 'lib/Prima/OpenGL.pm',
-	MIN_PERL_VERSION  => '5.008',
-	PREREQ_PM         => {
+	NAME               => 'Prima::OpenGL',
+	VERSION_FROM       => 'lib/Prima/OpenGL.pm',
+	MIN_PERL_VERSION   => '5.008',
+	PREREQ_PM          => {
 		'Prima'		=> '1.30',
-		'OpenGL'	=> 0.64,
+		'OpenGL'	=> '0.64',
 	},
-	ABSTRACT_FROM     => 'lib/Prima/OpenGL.pm',
-	AUTHOR            => 'Dmitry Karasik <dmitry@karasik.eu.org>',
-	LIBS              => "@libs",
-	DEFINE            => $d,
-	INC               => "$i -Iinclude",
-	OBJECT            => "@obj",
+	CONFIGURE_REQUIRES => {
+		'Prima'		=> '1.30',
+	},
+	ABSTRACT_FROM      => 'lib/Prima/OpenGL.pm',
+	AUTHOR             => 'Dmitry Karasik <dmitry@karasik.eu.org>',
+	LIBS               => "@libs",
+	DEFINE             => "$Prima::Config::Config{define}",
+	INC                => "$Prima::Config::Config{inc} -Iinclude",
+	OBJECT             => "@obj",
 );
-
