@@ -8,8 +8,11 @@ x11.c
 lib/Prima/OpenGL.pm
 lib/Prima/GLWidget.pm
 include/prima_gl.h
+examples/application.pl 
 examples/icosahedron.pl 
 examples/basic.pl 
+examples/bitmap.pl 
+examples/image.pl 
 t/01_load.t
 t/02_basic.t
 t/98_pod.t
