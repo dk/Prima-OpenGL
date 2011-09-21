@@ -23,7 +23,7 @@ sub profile_check_in
 {
 	my ( $self, $p, $default) = @_;
 	$self-> SUPER::profile_check_in( $p, $default);
-	%{ $p-> {gl_config} } = (%{ $p-> {gl_config} } ,%{ $default-> {gl_config} } )
+	%{ $p-> {gl_config} } = (%{ $default-> {gl_config} }, %{ $p-> {gl_config} })
 		if $p-> {gl_config};
 }
 
@@ -125,6 +125,16 @@ using C<gl> OpenGL functions.
 
 C<gl_config> contains requests to GL visual selector. See description of keys
 in L<Prima::OpenGL/Selection of a GL visual>.
+
+=back
+
+=head2 Events
+
+=over
+
+=item on_size
+
+By default, sets C<glViewport> to the new widget size. Override C<on_size> if that is not desired.
 
 =back
 
