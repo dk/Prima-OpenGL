@@ -124,55 +124,6 @@ setupDIB(HDC hDC, int w, int h)
     return bm;
 }
 
-void
-setupPixelFormat(HDC hDC)
-{
-    PIXELFORMATDESCRIPTOR pfd = {
-	sizeof(PIXELFORMATDESCRIPTOR),	/* size of this pfd */
-	1,				/* version num */
-	PFD_SUPPORT_OPENGL,		/* support OpenGL */
-	0,				/* pixel type */
-	0,				/* 8-bit color depth */
-	0, 0, 0, 0, 0, 0,		/* color bits (ignored) */
-	0,				/* no alpha buffer */
-	0,				/* alpha bits (ignored) */
-	0,				/* no accumulation buffer */
-	0, 0, 0, 0,			/* accum bits (ignored) */
-	16,				/* depth buffer */
-	0,				/* no stencil buffer */
-	0,				/* no auxiliary buffers */
-	PFD_MAIN_PLANE,			/* main layer */
-	0,				/* reserved */
-	0, 0, 0,			/* no layer, visible, damage masks */
-    };
-    int SelectedPixelFormat;
-    BOOL retVal;
-
-    pfd.cColorBits = GetDeviceCaps(hDC, BITSPIXEL);
-
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.dwFlags |= PFD_DRAW_TO_BITMAP;
-
-    SelectedPixelFormat = ChoosePixelFormat(hDC, &pfd);
-    if (SelectedPixelFormat == 0) {
-	(void) MessageBox(WindowFromDC(hDC),
-		"Failed to find acceptable pixel format.",
-		"OpenGL application error",
-		MB_ICONERROR | MB_OK);
-	exit(1);
-    }
-
-    retVal = SetPixelFormat(hDC, SelectedPixelFormat, &pfd);
-    if (retVal != TRUE) {
-	(void) MessageBox(WindowFromDC(hDC),
-		"Failed to set pixel format.",
-		"OpenGL application error",
-		MB_ICONERROR | MB_OK);
-	exit(1);
-    }
-}
-
-
 Handle
 gl_context_create( Handle object, GLRequest * request)
 {
@@ -346,6 +297,7 @@ gl_error_string(char * buf, int len)
       		( LPTSTR) &lpMsgBuf, 0, NULL
 	);
       	strncpy( localbuf, lpMsgBuf ? ( const char *) lpMsgBuf : "unknown", 1024);
+	LocalFree( lpMsgBuf);
 
 	/* chomp! */
 	i = strlen(localbuf);
