@@ -137,7 +137,7 @@ gl_context_create( Handle object, GLRequest * request)
 
 	CLEAR_ERROR;
 
-	ret = nilHandle;
+	ret = NULL;
 	
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.nSize        = sizeof(pfd);
