@@ -89,6 +89,7 @@ MODULE = Prima::OpenGL      PACKAGE = Prima::OpenGL
 
 BOOT:
 {
+	PRIMA_VERSION_BOOTCHECK;
 	CWidget = (PWidget_vmt)gimme_the_vmt( "Prima::Widget");
 	CDeviceBitmap = (PDeviceBitmap_vmt)gimme_the_vmt( "Prima::DeviceBitmap");
 	CImage = (PImage_vmt)gimme_the_vmt( "Prima::Image");
