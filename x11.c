@@ -148,6 +148,7 @@ gl_context_create( Handle widget, GLRequest * request)
 	}
 	case GLREQ_TARGET_PRINTER:
 		SET_ERROR(ERROR_NO_PRINTER);
+		free(ret);
 		return 0;
 	}
 
