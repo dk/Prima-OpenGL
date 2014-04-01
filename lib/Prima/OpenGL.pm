@@ -1,4 +1,3 @@
-# $Id$
 package Prima::OpenGL;
 use strict;
 use Prima;
@@ -17,7 +16,8 @@ $VERSION = '0.04';
 
 bootstrap Prima::OpenGL $VERSION;
 
-package Prima::Drawable;
+package 
+    Prima::Drawable; # double line needed for CPAN indexer, it thinks THIS is that module
 
 # Now inject GL functions
 
