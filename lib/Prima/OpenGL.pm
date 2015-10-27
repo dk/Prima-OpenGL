@@ -1,4 +1,3 @@
-# $Id$
 package Prima::OpenGL;
 use strict;
 use Prima;
@@ -10,14 +9,15 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 sub dl_load_flags { 0x01 };
 
-$VERSION = '0.04';
+$VERSION = '0.05';
 @EXPORT = qw();
 @EXPORT_OK = qw();
 %EXPORT_TAGS = ();
 
 bootstrap Prima::OpenGL $VERSION;
 
-package Prima::Drawable;
+package 
+    Prima::Drawable; # double line needed for CPAN indexer, it thinks THIS is that module
 
 # Now inject GL functions
 
