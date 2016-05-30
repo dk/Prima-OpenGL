@@ -27,11 +27,11 @@ WriteMakefile(
 	VERSION_FROM       => 'lib/Prima/OpenGL.pm',
 	MIN_PERL_VERSION   => '5.008',
 	PREREQ_PM          => {
-		'Prima'		=> '1.30',
+		'Prima'		=> 0,
 		'OpenGL'	=> '0.64',
 	},
 	CONFIGURE_REQUIRES => {
-		'Prima'		=> '1.30',
+		'Prima'		=> 0,
 	},
 	ABSTRACT_FROM      => 'lib/Prima/OpenGL.pm',
 	AUTHOR             => 'Dmitry Karasik <dmitry@karasik.eu.org>',
