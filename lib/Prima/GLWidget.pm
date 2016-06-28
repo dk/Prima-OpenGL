@@ -73,6 +73,15 @@ sub on_size
 
 sub on_destroy { shift-> gl_destroy }
 
+sub set
+{
+	my ( $self, %set ) = @_;
+	$self-> gl_destroy if exists $set{owner};
+	$self-> SUPER::set(%set);
+	$self-> gl_create(%{$self->{gl_config}}) if exists $set{owner};
+	return;
+}
+
 1;
 
 __DATA__
