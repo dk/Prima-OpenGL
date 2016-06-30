@@ -31,6 +31,7 @@ typedef struct {
 	HWND  wnd;
 	HBITMAP bm;
 	Handle object;
+	Bool layered;
 } Context;
 
 static char * last_failed_func = 0;
@@ -133,6 +134,7 @@ gl_context_create( Handle object, GLRequest * request)
 	HDC dc;
 	HBITMAP glbm;
 	HGLRC gl;
+	Bool layered;
 	Context * ret;
 
 	CLEAR_ERROR;
@@ -154,18 +156,21 @@ gl_context_create( Handle object, GLRequest * request)
 		glbm = setupDIB(dc, img-> w, img-> h);
 		SelectObject( dc, glbm);
 		request-> double_buffer = GLREQ_FALSE;
+		layered = false;
 		break;
 	case GLREQ_TARGET_WINDOW:
 		glbm = 0;
 		wnd = (HWND) var-> handle;
 		dc  = GetDC( wnd );
 		pfd.dwFlags |= PFD_DRAW_TO_WINDOW;
+		layered = apc_widget_get_layered( object );
 		break;
 	case GLREQ_TARGET_APPLICATION:
 		glbm = 0;
 		wnd  = 0;
 		dc   = GetDC( 0 );
 		pfd.dwFlags |= PFD_DRAW_TO_WINDOW;
+		layered = false;
 		break;
 	}
 	
@@ -223,11 +228,12 @@ gl_context_create( Handle object, GLRequest * request)
 	}
 
 	ret = malloc( sizeof( Context ));
-	ret-> dc     = dc;
-	ret-> gl     = gl;
-	ret-> wnd    = wnd;
-	ret-> object = object;
-	ret-> bm     = glbm;
+	ret-> dc      = dc;
+	ret-> gl      = gl;
+	ret-> wnd     = wnd;
+	ret-> object  = object;
+	ret-> bm      = glbm;
+	ret-> layered = layered;
 	protect_object( object );
 
 	return (Handle) ret;
@@ -274,8 +280,50 @@ gl_flush( Handle context)
 		ret = BitBlt(sys-> ps, 0, 0, img-> w, img-> h, ctx-> dc, 0, 0, SRCCOPY);
 		if ( !ret ) SET_ERROR( "BitBlt");
 		GdiFlush();
+	} else if ( ctx-> layered ) {
+		Byte * pixels;
+		Point size;
+		BITMAPINFO bmi;
+		HDC dc, argb_dc;
+		HBITMAP bm, bmOld;
+		BLENDFUNCTION bf;
+
+		size = apc_widget_get_size( ctx-> object );
+		argb_dc = (( PDrawableData)(( PComponent) ctx-> object )-> sysData)->ps;
+
+		/* prepare bitmap storage */
+		bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+		bmi.bmiHeader.biWidth       = size. x;
+		bmi.bmiHeader.biHeight      = size. y;
+		bmi.bmiHeader.biPlanes      = 1;
+		bmi.bmiHeader.biBitCount    = 32;
+		bmi.bmiHeader.biCompression = BI_RGB;
+		bmi.bmiHeader.biSizeImage   = size.x * size.y * 4;
+		dc = CreateCompatibleDC(argb_dc);
+		if ( !( bm = CreateDIBSection(dc, &bmi, DIB_RGB_COLORS, (LPVOID)&pixels, NULL, 0x0))) {
+			SET_ERROR("CreateDIBSection");
+			return false;
+		}
+		bmOld = SelectObject(dc, bm);
+
+		/* read pixels from GL */
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glReadPixels(0, 0, size.x, size.y, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pixels);
+
+		/* write them to GDI */
+		bf.BlendOp             = AC_SRC_OVER;
+		bf.BlendFlags          = 0;
+		bf.SourceConstantAlpha = 0xff;
+		bf.AlphaFormat         = 0;
+		ret = AlphaBlend(argb_dc, 0, 0, size.x, size.y, dc, 0, 0, size.x, size.y, bf);
+		if ( !ret ) SET_ERROR("AlphaBlend");
+
+		/* cleanup */
+		SelectObject(dc, bmOld);
+		DeleteObject(bm);
+		DeleteDC(dc);
 	} else {
-		ret = SwapBuffers( ctx-> dc );
+		ret = SwapBuffers( ctx->dc );
 		if ( !ret ) SET_ERROR( "SwapBuffers");
 	}
 	

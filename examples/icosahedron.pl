@@ -157,6 +157,28 @@ sub create_window
 				['*' => '~Frame' => 'Ctrl+F' => '^F' => sub { 
 					$config{use_frame} = $_[0]-> menu-> toggle( $_[1] );
 				}],
+				[
+				( $::application-> get_system_value(sv::CompositeDisplay) ? () : '-'),
+				'~Layered' => 'Ctrl+Y' => '^Y' => sub { 
+					my $self = shift;
+					my $l = $self-> menu-> toggle( shift );
+					$config{widget}->set(
+						layered   => $l,
+						clipOwner => !$l,
+						geometry  => $l ? gt::Default : gt::Pack,
+					);
+					$self->shape( Prima::Image->new(type => im::bpp1) ) if $l;
+					$config{widget}-> send_to_back unless $l;
+					$config{widget}-> origin( 
+						$self-> left   + $self-> width / 2,
+						$self-> bottom + $self-> height / 2,
+					) if $l;
+					$config{widget}-> gl_destroy;
+					$config{widget}-> gl_create( %{$config{widget}->gl_config} );
+					$config{widget}-> gl_select;
+					init(\%config);
+					reshape(\%config);
+				}],
 			]],
 			[],
 			['~Clone' => \&create_window ],
@@ -165,6 +187,8 @@ sub create_window
 	
 	$config{widget} = $top-> insert( 'Prima::GLWidget' => 
 		pack      => { expand => 1, fill => 'both'},
+		growMode  => gm::DontCare,
+		geometry  => gt::Pack,
 		gl_config => { double_buffer => 1, depth_bits => 16 },
 		onCreate  => sub {
 			shift-> gl_select;
@@ -173,9 +197,7 @@ sub create_window
 			glEnable(GL_DEPTH_TEST);
 			glRotatef(0.12,1,0,0);
 		},
-		onPaint      => sub {
-			display(\%config);
-		},
+		onPaint      => sub { display(\%config) },
 		onMouseDown  => sub { $config{grab} = 1 },
 		onMouseUp    => sub { $config{grab} = 0 },
 	);
