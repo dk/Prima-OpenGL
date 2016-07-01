@@ -87,7 +87,9 @@ gl_context_create( Handle widget, GLRequest * request)
 	ATTR( accum_alpha_bits, GLX_ACCUM_ALPHA_SIZE )
 	*(attr++) = 0;
 
-	if ( !( visual = glXChooseVisual( DISP, SCREEN, attr_list ))) {
+	if ( request-> target == GLREQ_TARGET_WINDOW && sys-> flags. layered) {
+		visual = sys-> visual;
+	} else if ( !( visual = glXChooseVisual( DISP, SCREEN, attr_list ))) {
 		if ( request-> pixels != GLREQ_PIXEL_RGBA) {
 			/* emulate win32 which does it softly, i.e. if RGBA fails, it proposes PALETTED */
 			request-> pixels = GLREQ_PIXEL_RGBA;

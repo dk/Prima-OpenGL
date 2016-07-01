@@ -167,7 +167,6 @@ sub create_window
 						clipOwner => !$l,
 						geometry  => $l ? gt::Default : gt::Pack,
 					);
-					$self->shape( Prima::Image->new(type => im::bpp1) ) if $l;
 					$config{widget}-> send_to_back unless $l;
 					$config{widget}-> origin( 
 						$self-> left   + $self-> width / 2,
