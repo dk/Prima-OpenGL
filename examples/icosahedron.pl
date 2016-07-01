@@ -141,6 +141,8 @@ sub reset_gl
 	glEnable(GL_DEPTH_TEST);
 }
 
+# This one is needed for win32 - x11 is just fine putting ARGB layer on a top-level window,
+# without touching window decorations.
 sub reshape_top
 {
 	my $top = shift;
@@ -157,6 +159,26 @@ sub reshape_top
 	$top->shape($shape);
 }
 
+# This one is needed for x11 - widget sitting on top of the quit button, doesn't let events through.
+# Not needed for win32 because layered shape is only catching mouse events where opaque
+sub reshape_widget
+{
+	my $widget = shift;
+	my @size = $widget-> size;
+	my $shape = Prima::Image->new(
+		type => im::BW,
+		width => $size[0],
+		height => $size[1],
+		backColor => 0,
+		color     => 0xffffff,
+	);
+	$shape->begin_paint;
+	$shape->clear;
+	$shape->fill_ellipse($size[0]/2, $size[1]/2, $size[0]*0.66, $size[1]*0.66);
+	$shape->end_paint;
+	$widget->shape($shape);
+}
+
 sub create_window
 {
 	my %config = (
@@ -169,6 +191,7 @@ sub create_window
 		widget        => undef,
 	);		
 
+	my $wait_for_shape = 1;
 	my $top = Prima::MainWindow-> new(
 		size => [ 300, 300 ],
 		text => 'OpenGL example',
@@ -196,6 +219,7 @@ sub create_window
 					if ( $l ) {
 						$config{widget}-> origin( $self-> left, $self-> bottom);
 						reshape_top($self);
+						reshape_widget($config{widget});
 					} else {
 						$config{widget}-> origin( 0,0);
 						$config{widget}-> send_to_back;
@@ -233,6 +257,9 @@ sub create_window
 		onPaint      => sub { display(\%config) },
 		onMouseDown  => sub { $config{grab} = 1 },
 		onMouseUp    => sub { $config{grab} = 0 },
+		onSize       => sub {
+			reshape_widget(shift) if $show_off && ($config{widget} ? $config{widget}->layered : 1),
+		},
 	);
 	
 	$top-> insert( Timer => 
