@@ -21,6 +21,8 @@ use lib 'lib', 'blib/arch';
 use Prima qw(Application Buttons GLWidget);
 use OpenGL qw(:glfunctions :glconstants);
 
+my $show_off = $::application->get_system_value( sv::CompositeDisplay ) && $::application->get_system_value(sv::ShapeExtension);
+
 sub icosahedron
 {
 	my $config = shift;
@@ -130,6 +132,31 @@ sub reshape
 	glLoadIdentity();
 }
 
+sub reset_gl
+{
+	my ( $widget, $config ) = @_;
+	$widget-> gl_select;
+	init($config);
+	reshape($config);
+	glEnable(GL_DEPTH_TEST);
+}
+
+sub reshape_top
+{
+	my $top = shift;
+	my @size = $top-> size;
+	my $shape = Prima::Image->new(
+		type => im::BW,
+		width => $size[0],
+		height => $size[1],
+	);
+	$shape->begin_paint;
+	$shape->clear;
+	$shape->fill_ellipse($size[0]/2, $size[1]/2, @size);
+	$shape->end_paint;
+	$top->shape($shape);
+}
+
 sub create_window
 {
 	my %config = (
@@ -158,41 +185,48 @@ sub create_window
 					$config{use_frame} = $_[0]-> menu-> toggle( $_[1] );
 				}],
 				[
-				( $::application-> get_system_value(sv::CompositeDisplay) ? () : '-'),
+				( $show_off ? '*' : '-' ),
 				'~Layered' => 'Ctrl+Y' => '^Y' => sub { 
 					my $self = shift;
 					my $l = $self-> menu-> toggle( shift );
 					$config{widget}->set(
 						layered   => $l,
 						clipOwner => !$l,
-						geometry  => $l ? gt::Default : gt::Pack,
 					);
-					$config{widget}-> send_to_back unless $l;
-					$config{widget}-> origin( 
-						$self-> left   + $self-> width / 2,
-						$self-> bottom + $self-> height / 2,
-					) if $l;
+					if ( $l ) {
+						$config{widget}-> origin( $self-> left, $self-> bottom);
+						reshape_top($self);
+					} else {
+						$config{widget}-> origin( 0,0);
+						$config{widget}-> send_to_back;
+						$self->shape(undef);
+					}
 					$config{widget}-> gl_destroy;
 					$config{widget}-> gl_create( %{$config{widget}->gl_config} );
-					$config{widget}-> gl_select;
-					init(\%config);
-					reshape(\%config);
+					reset_gl($config{widget} , \%config);
 				}],
 			]],
 			[],
 			['~Clone' => \&create_window ],
 		],
+		onSize => sub {
+			my ( $self, $ox, $oy, $x, $y ) = @_;
+			reshape_top($self) if $show_off && ($config{widget} ? $config{widget}->layered : 1);
+		},
 	);
 	
 	$config{widget} = $top-> insert( 'Prima::GLWidget' => 
-		pack      => { expand => 1, fill => 'both'},
-		growMode  => gm::DontCare,
-		geometry  => gt::Pack,
+		growMode   => gm::Client,
+		($show_off ? (
+			layered   => 1,
+			clipOwner => 0,
+			left      => $top->left,
+			bottom    => $top->bottom,
+			size      => [ $top-> size ],
+		) : ()),
 		gl_config => { double_buffer => 1, depth_bits => 16 },
 		onCreate  => sub {
-			shift-> gl_select;
-			init(\%config);
-			reshape(\%config);
+			reset_gl(shift,\%config);
 			glEnable(GL_DEPTH_TEST);
 			glRotatef(0.12,1,0,0);
 		},
