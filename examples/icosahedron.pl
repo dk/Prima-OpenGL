@@ -86,8 +86,8 @@ sub init
 	if ( $config-> {use_lighting} ) {
 		# Initialize material property, light source, lighting model, 
 		# and depth buffer.
-		my @mat_specular = ( 1.0, 1.0, 0.0, 1.0 );
-		my @mat_diffuse  = ( 0.0, 1.0, 1.0, 1.0 );
+		my @mat_specular = ( 1.0, 1.0, 0.0, 0.8 );
+		my @mat_diffuse  = ( 0.0, 1.0, 1.0, 0.8 );
 		my @light_position = ( 1.0, 1.0, 1.0, 0.0 );
 		
 		glMaterialfv_s(GL_FRONT, GL_DIFFUSE, pack("f4",@mat_diffuse));
@@ -98,6 +98,9 @@ sub init
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		glDepthFunc(GL_LESS);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	} else {
 		glDisable(GL_LIGHTING);
 		glDisable(GL_LIGHT0);
