@@ -177,7 +177,7 @@ sub reshape_widget
 	);
 	$shape->begin_paint;
 	$shape->clear;
-	$shape->fill_ellipse($size[0]/2, $size[1]/2, $size[0]*0.66, $size[1]*0.66);
+	$shape->fill_ellipse($size[0]/2, $size[1]/2, $size[0]*0.67, $size[1]*0.67);
 	$shape->end_paint;
 	$widget->shape($shape);
 }
