@@ -163,7 +163,7 @@ gl_context_create( Handle object, GLRequest * request)
 		wnd = (HWND) var-> handle;
 		dc  = GetDC( wnd );
 		pfd.dwFlags |= PFD_DRAW_TO_WINDOW;
-		layered = apc_widget_get_layered( object );
+		layered = apc_widget_get_layered_requested( object );
 		break;
 	case GLREQ_TARGET_APPLICATION:
 		glbm = 0;
