@@ -21,7 +21,7 @@ use lib 'lib', 'blib/arch';
 use Prima qw(Application Buttons GLWidget);
 use OpenGL qw(:glfunctions :glconstants);
 
-my $show_off = $::application->get_system_value( sv::CompositeDisplay ) && $::application->get_system_value(sv::ShapeExtension);
+my $show_off = $::application->get_system_value( sv::CompositeDisplay );
 
 sub icosahedron
 {
@@ -111,6 +111,7 @@ sub init
 sub display
 {
 	my $config = shift;
+	glClearColor(0,0,0,0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix();
 	glRotatef(23*sin($config-> {spin}*3.14/180),1,0,0);
@@ -144,44 +145,6 @@ sub reset_gl
 	glEnable(GL_DEPTH_TEST);
 }
 
-# This one is needed for win32 - x11 is just fine putting ARGB layer on a top-level window,
-# without touching window decorations.
-sub reshape_top
-{
-	my $top = shift;
-	my @size = $top-> size;
-	my $shape = Prima::Image->new(
-		type => im::BW,
-		width => $size[0],
-		height => $size[1],
-	);
-	$shape->begin_paint;
-	$shape->clear;
-	$shape->fill_ellipse($size[0]/2, $size[1]/2, @size);
-	$shape->end_paint;
-	$top->shape($shape);
-}
-
-# This one is needed for x11 - widget sitting on top of the quit button, doesn't let events through.
-# Not needed for win32 because layered shape is only catching mouse events where opaque
-sub reshape_widget
-{
-	my $widget = shift;
-	my @size = $widget-> size;
-	my $shape = Prima::Image->new(
-		type => im::BW,
-		width => $size[0],
-		height => $size[1],
-		backColor => 0,
-		color     => 0xffffff,
-	);
-	$shape->begin_paint;
-	$shape->clear;
-	$shape->fill_ellipse($size[0]/2, $size[1]/2, $size[0]*0.67, $size[1]*0.67);
-	$shape->end_paint;
-	$widget->shape($shape);
-}
-
 sub create_window
 {
 	my %config = (
@@ -194,10 +157,16 @@ sub create_window
 		widget        => undef,
 	);		
 
-	my $wait_for_shape = 1;
 	my $top = Prima::MainWindow-> new(
+		onPaint => sub {
+			my $self = shift;
+			$self->color(cl::White);
+			$self->line(0,0,300,300);
+		},
 		size => [ 300, 300 ],
 		text => 'OpenGL example',
+		layered => $show_off,
+		backColor => 0,
 		menuItems => [
 			['~Options' => [
 				['*' => '~Rotate' => 'Ctrl+R' => '^R' => sub { 
@@ -214,20 +183,8 @@ sub create_window
 				( $show_off ? '*' : '-' ),
 				'~Layered' => 'Ctrl+Y' => '^Y' => sub { 
 					my $self = shift;
-					my $l = $self-> menu-> toggle( shift );
-					$config{widget}->set(
-						layered   => $l,
-						clipOwner => !$l,
-					);
-					if ( $l ) {
-						$config{widget}-> origin( $self-> left, $self-> bottom);
-						reshape_top($self);
-						reshape_widget($config{widget});
-					} else {
-						$config{widget}-> origin( 0,0);
-						$config{widget}-> send_to_back;
-						$self->shape(undef);
-					}
+					$self->layered( $self-> menu-> toggle( shift ));
+					$config{widget}-> send_to_back;
 					$config{widget}-> gl_destroy;
 					$config{widget}-> gl_create( %{$config{widget}->gl_config} );
 					reset_gl($config{widget} , \%config);
@@ -236,21 +193,13 @@ sub create_window
 			[],
 			['~Clone' => \&create_window ],
 		],
-		onSize => sub {
-			my ( $self, $ox, $oy, $x, $y ) = @_;
-			reshape_top($self) if $show_off && ($config{widget} ? $config{widget}->layered : 1);
-		},
 	);
 	
 	$config{widget} = $top-> insert( 'Prima::GLWidget' => 
-		growMode   => gm::Client,
-		($show_off ? (
-			layered   => 1,
-			clipOwner => 0,
-			left      => $top->left,
-			bottom    => $top->bottom,
-			size      => [ $top-> size ],
-		) : ()),
+		growMode  => gm::Client,
+		layered   => 1,
+		origin    => [0, 0],
+		size      => [ $top-> size ],
 		gl_config => { double_buffer => 1, depth_bits => 16 },
 		onCreate  => sub {
 			reset_gl(shift,\%config);
@@ -260,9 +209,6 @@ sub create_window
 		onPaint      => sub { display(\%config) },
 		onMouseDown  => sub { $config{grab} = 1 },
 		onMouseUp    => sub { $config{grab} = 0 },
-		onSize       => sub {
-			reshape_widget(shift) if $show_off && ($config{widget} ? $config{widget}->layered : 1),
-		},
 	);
 	
 	$top-> insert( Timer => 

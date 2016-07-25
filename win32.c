@@ -160,10 +160,25 @@ gl_context_create( Handle object, GLRequest * request)
 		break;
 	case GLREQ_TARGET_WINDOW:
 		glbm = 0;
-		wnd = (HWND) var-> handle;
+		if ( apc_widget_is_layered( object )) {
+        		const WCHAR wnull = 0;
+			wnd = CreateWindowExW(
+				WS_EX_TOOLWINDOW, L"Generic", &wnull,
+        			WS_VISIBLE | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+        			0,0,1,1,NULL,NULL,NULL, NULL
+			);
+			ShowWindow(wnd,SW_HIDE);
+			if (!wnd) {
+				SET_ERROR("CreateWindowExW");
+				return (Handle)0;
+			}
+			layered = true;
+		} else {
+			wnd = (HWND) var-> handle;
+			layered = false;
+		}
 		dc  = GetDC( wnd );
 		pfd.dwFlags |= PFD_DRAW_TO_WINDOW;
-		layered = apc_widget_get_layered_requested( object );
 		break;
 	case GLREQ_TARGET_APPLICATION:
 		glbm = 0;
@@ -252,6 +267,7 @@ gl_context_destroy( Handle context)
 		DeleteDC( ctx-> dc);
 	}
 	if ( ctx-> wnd) ReleaseDC( ctx-> wnd, ctx-> dc );
+	if ( ctx-> layered) DestroyWindow( ctx-> wnd );
 	unprotect_object( ctx-> object );
 	free(( void*)  ctx );
 }
@@ -262,6 +278,14 @@ gl_context_make_current( Handle context)
 	Bool ret;
 	CLEAR_ERROR;
 	if ( context ) {
+		if ( ctx-> layered ) {
+			RECT r;
+			Handle object = ctx-> object;
+			GetWindowRect(( HWND ) var-> handle, &r);
+			SetWindowPos( ctx-> wnd, 
+				NULL, 0, 0, r.right-r.left, r.bottom-r.top, 
+				SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);
+		}
 		ret = wglMakeCurrent( ctx-> dc, ctx-> gl);
 	} else {
 		ret = wglMakeCurrent( NULL, NULL );
@@ -311,12 +335,8 @@ gl_flush( Handle context)
 		glReadPixels(0, 0, size.x, size.y, GL_BGRA_EXT, GL_UNSIGNED_BYTE, pixels);
 
 		/* write them to GDI */
-		bf.BlendOp             = AC_SRC_OVER;
-		bf.BlendFlags          = 0;
-		bf.SourceConstantAlpha = 0xff;
-		bf.AlphaFormat         = 0;
-		ret = AlphaBlend(argb_dc, 0, 0, size.x, size.y, dc, 0, 0, size.x, size.y, bf);
-		if ( !ret ) SET_ERROR("AlphaBlend");
+		ret = BitBlt(argb_dc, 0, 0, size.x, size.y, dc, 0, 0, SRCCOPY);
+		if ( !ret ) SET_ERROR("BitBlt");
 
 		/* cleanup */
 		SelectObject(dc, bmOld);
