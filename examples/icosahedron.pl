@@ -158,11 +158,6 @@ sub create_window
 	);		
 
 	my $top = Prima::MainWindow-> new(
-		onPaint => sub {
-			my $self = shift;
-			$self->color(cl::White);
-			$self->line(0,0,300,300);
-		},
 		size => [ 300, 300 ],
 		text => 'OpenGL example',
 		layered => $show_off,
@@ -200,7 +195,7 @@ sub create_window
 		layered   => 1,
 		origin    => [0, 0],
 		size      => [ $top-> size ],
-		gl_config => { double_buffer => 1, depth_bits => 16 },
+		gl_config => { double_buffer => 0, depth_bits => 16 },
 		onCreate  => sub {
 			reset_gl(shift,\%config);
 			glEnable(GL_DEPTH_TEST);
