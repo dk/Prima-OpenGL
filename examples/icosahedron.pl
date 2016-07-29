@@ -21,7 +21,10 @@ use lib 'lib', 'blib/arch';
 use Prima qw(Application Buttons GLWidget);
 use OpenGL qw(:glfunctions :glconstants);
 
-my $show_off = $::application->get_system_value( sv::CompositeDisplay );
+my $win32     = $^O =~ /win32/i;
+my $show_off  = $::application->get_system_value( sv::LayeredWidgets );
+my $composite = $::application->get_system_value( sv::CompositeDisplay );
+my $gl_buffer = ($win32 && $composite) ? 0 : 1; # aero/dwm makes an extra buffer for all windows
 
 sub icosahedron
 {
@@ -161,6 +164,7 @@ sub create_window
 		size => [ 300, 300 ],
 		text => 'OpenGL example',
 		layered => $show_off,
+		buffered => 0,
 		backColor => 0,
 		menuItems => [
 			['~Options' => [
@@ -174,6 +178,7 @@ sub create_window
 				['*' => '~Frame' => 'Ctrl+F' => '^F' => sub { 
 					$config{use_frame} = $_[0]-> menu-> toggle( $_[1] );
 				}],
+				[],
 				[
 				( $show_off ? '*' : '-' ),
 				'~Layered' => 'Ctrl+Y' => '^Y' => sub { 
@@ -182,6 +187,17 @@ sub create_window
 					$config{widget}-> send_to_back;
 					$config{widget}-> gl_destroy;
 					$config{widget}-> gl_create( %{$config{widget}->gl_config} );
+					reset_gl($config{widget} , \%config);
+				}],
+				['' => '~Buffered' => sub {
+					my $self = shift;
+					$self->buffered( $self-> menu-> toggle( shift ));
+				}],
+				[($gl_buffer ? '*' : '') => '~GL Double buffer' => sub {
+					my $self = shift;
+					my $c = $config{widget}-> gl_config;
+					$c->{double_buffer} = $self-> menu-> toggle(shift) ? 1 : 0;
+					$config{widget}-> gl_config($c);
 					reset_gl($config{widget} , \%config);
 				}],
 			]],
@@ -195,7 +211,7 @@ sub create_window
 		layered   => 1,
 		origin    => [0, 0],
 		size      => [ $top-> size ],
-		gl_config => { double_buffer => 0, depth_bits => 16 },
+		gl_config => { double_buffer => $gl_buffer, depth_bits => 16 },
 		onCreate  => sub {
 			reset_gl(shift,\%config);
 			glEnable(GL_DEPTH_TEST);
