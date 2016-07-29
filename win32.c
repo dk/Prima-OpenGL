@@ -235,8 +235,13 @@ gl_context_create( Handle object, GLRequest * request)
 	}
 	if ( !SetPixelFormat(dc, pf, &pfd)) {
 		SET_ERROR("SetPixelFormat");
+		/* 
+		Did you try to recreate a GL context on the same window? 
+		Windows doesn't allow that. Source:
+                https://www.opengl.org/wiki/Platform_specifics:_Windows#How_many_times_can_I_call_SetPixelFormat.3F
+		*/
 		return (Handle)0;
-	}		
+	}
 	if ( !( gl = wglCreateContext(dc))) {
 		SET_ERROR("wglCreateContext");
 		return (Handle)0;

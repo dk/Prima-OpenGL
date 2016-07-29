@@ -148,6 +148,28 @@ sub reset_gl
 	glEnable(GL_DEPTH_TEST);
 }
 
+sub create_gl_widget
+{
+	my ( $top, $config ) = @_;
+
+	return $top-> insert( 'Prima::GLWidget' => 
+		growMode  => gm::Client,
+		layered   => 1,
+		origin    => [0, 0],
+		size      => [ $top-> size ],
+		gl_config => { double_buffer => $gl_buffer, depth_bits => 16 },
+		onCreate  => sub {
+			reset_gl(shift,$config);
+			glEnable(GL_DEPTH_TEST);
+			glRotatef(0.12,1,0,0);
+		},
+		onPaint      => sub { display($config) },
+		onMouseDown  => sub { $config->{grab} = 1 },
+		onMouseUp    => sub { $config->{grab} = 0 },
+	);
+}
+	
+
 sub create_window
 {
 	my %config = (
@@ -195,32 +217,18 @@ sub create_window
 				}],
 				[($gl_buffer ? '*' : '') => '~GL Double buffer' => sub {
 					my $self = shift;
-					my $c = $config{widget}-> gl_config;
-					$c->{double_buffer} = $self-> menu-> toggle(shift) ? 1 : 0;
-					$config{widget}-> gl_config($c);
-					reset_gl($config{widget} , \%config);
+					$gl_buffer = $self-> menu-> toggle(shift) ? 1 : 0;
+					# win32 needs that, x11 doesn't
+					$config{widget}->destroy;
+					$config{widget} = create_gl_widget($self, \%config);
 				}],
 			]],
 			[],
 			['~Clone' => \&create_window ],
 		],
 	);
-	
-	$config{widget} = $top-> insert( 'Prima::GLWidget' => 
-		growMode  => gm::Client,
-		layered   => 1,
-		origin    => [0, 0],
-		size      => [ $top-> size ],
-		gl_config => { double_buffer => $gl_buffer, depth_bits => 16 },
-		onCreate  => sub {
-			reset_gl(shift,\%config);
-			glEnable(GL_DEPTH_TEST);
-			glRotatef(0.12,1,0,0);
-		},
-		onPaint      => sub { display(\%config) },
-		onMouseDown  => sub { $config{grab} = 1 },
-		onMouseUp    => sub { $config{grab} = 0 },
-	);
+
+	$config{widget} = create_gl_widget( $top, \%config );
 	
 	$top-> insert( Timer => 
 		timeout => 5,
