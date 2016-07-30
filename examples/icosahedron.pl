@@ -221,6 +221,7 @@ sub create_window
 					# win32 needs that, x11 doesn't
 					$config{widget}->destroy;
 					$config{widget} = create_gl_widget($self, \%config);
+					$config{widget}-> send_to_back;
 				}],
 			]],
 			[],
