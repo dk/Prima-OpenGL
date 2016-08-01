@@ -24,7 +24,7 @@ use OpenGL qw(:glfunctions :glconstants);
 my $win32     = $^O =~ /win32/i;
 my $show_off  = $::application->get_system_value( sv::LayeredWidgets );
 my $composite = $::application->get_system_value( sv::CompositeDisplay );
-my $gl_buffer = ($win32 && $composite) ? 0 : 1; # aero/dwm makes an extra buffer for all windows
+my $gl_buffer = 1;
 
 sub icosahedron
 {
