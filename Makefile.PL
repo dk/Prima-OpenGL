@@ -27,7 +27,7 @@ WriteMakefile(
 	VERSION_FROM       => 'lib/Prima/OpenGL.pm',
 	MIN_PERL_VERSION   => '5.010',
 	PREREQ_PM          => {
-		'Prima'		=> 0,
+		'Prima'		=> 1.49,
 		'OpenGL'	=> 0,
 	},
 	CONFIGURE_REQUIRES => {
