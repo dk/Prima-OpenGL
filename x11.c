@@ -22,7 +22,7 @@ extern "C" {
 typedef struct {
 	Drawable drawable;
 	GLXContext context;
-	Pixmap pixmap;
+	int pixmap;
 } Context;
 
 typedef struct {
@@ -129,17 +129,17 @@ gl_context_create( Handle widget, GLRequest * request)
 		Bool success;
 		XCHECKPOINT;
 
-		ret-> drawable   = sys-> gdrawable;
-		ret-> pixmap     = glXCreateGLXPixmap( DISP, visual, sys-> gdrawable);
+		ret-> drawable = glXCreateGLXPixmap( DISP, visual, sys-> gdrawable);
+		ret-> pixmap   = 1;
 
 		/* check if pixmaps are supported on this visual at all */
 		old_context  = glXGetCurrentContext();
 		old_drawable = glXGetCurrentDrawable();
-		success = glXMakeCurrent( DISP, ctx-> drawable, ctx-> context);
+		success = glXMakeCurrent( DISP, ret-> drawable, ret-> context);
 		glXMakeCurrent( DISP, old_drawable, old_context);
 		if ( !success ) {
 			SET_ERROR( ERROR_NO_PIXMAPS );
-			glXDestroyGLXPixmap( DISP, ret-> pixmap);
+			glXDestroyGLXPixmap( DISP, ret-> drawable);
 			glXDestroyContext( DISP, ret-> context );
 			free(ret);
 			return 0;
@@ -165,7 +165,7 @@ gl_context_destroy( Handle context)
 	if ( glXGetCurrentContext() == ctx-> context) 
 		glXMakeCurrent( DISP, 0, NULL);
 	if ( ctx-> pixmap)
-		glXDestroyGLXPixmap( DISP, ctx-> pixmap);
+		glXDestroyGLXPixmap( DISP, ctx-> drawable);
 	glXDestroyContext( DISP, ctx-> context );
 	free(( void*)  ctx );
 }
