@@ -113,6 +113,7 @@ Prima::GLWidget - general purpose GL drawing area / widget
 				glVertex2f( 0.5, 0.5);
 				glVertex2f( 0.5,-0.5);
 			glEnd();
+			glFlush();
 		}
 	);
 
