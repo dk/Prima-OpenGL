@@ -1,3 +1,6 @@
+0.07  - Windows: Try to get at the native OpenGL context, not the
+        default software implementation
+
 0.06  - add alpha layering support
 
 0.05  - small fixes
