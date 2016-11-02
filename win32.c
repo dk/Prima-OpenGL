@@ -144,7 +144,7 @@ gl_context_create( Handle object, GLRequest * request)
 	memset(&pfd, 0, sizeof(pfd));
 	pfd.nSize        = sizeof(pfd);
 	pfd.nVersion     = 1;
-	pfd.dwFlags      = PFD_SUPPORT_OPENGL | PFD_SUPPORT_GDI;
+	pfd.dwFlags      = PFD_SUPPORT_OPENGL;
 
 	switch ( request-> target ) {
 	case GLREQ_TARGET_BITMAP:
@@ -184,7 +184,7 @@ gl_context_create( Handle object, GLRequest * request)
 		glbm = 0;
 		wnd  = 0;
 		dc   = GetDC( 0 );
-		pfd.dwFlags |= PFD_DRAW_TO_WINDOW;
+		pfd.dwFlags |= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_GDI;
 		layered = false;
 		break;
 	}
