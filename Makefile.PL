@@ -39,4 +39,10 @@ WriteMakefile(
 	DEFINE             => "$Prima::Config::Config{define}",
 	INC                => "$Prima::Config::Config{inc} -Iinclude",
 	OBJECT             => "@obj",
+	META_MERGE        => {
+		resources => {
+			repository => 'http://github.com/dk/Prima-OpenGL',
+		},
+	},
+	
 );
