@@ -121,6 +121,7 @@ sub display
 	glRotatef($config-> {spin},0,1,0);
 	if ( $config-> {grab} ) {
 		my ( $x, $y ) = $config-> {widget}-> pointerPos;
+		$y = -$y;
 		glRotatef( $x, 0, 1, 0);
 		glRotatef( $y, 1, 0, 0);
 	}		
