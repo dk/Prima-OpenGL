@@ -1,9 +1,9 @@
-#! /usr/bin/perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
 use Test::More;
-use Prima::noX11;
+use Prima::Test;
 use OpenGL;
 use Prima::OpenGL;
 use Prima::Application;
@@ -22,10 +22,10 @@ glOrtho(-1,1,-1,1,-1,1);
 
 glColor3f(1,0,0);
 glBegin(GL_POLYGON);
-	glVertex2f(-0.5,-0.5);
-	glVertex2f(-0.5, 0.5);
-	glVertex2f( 0.5, 0.5);
-	glVertex2f( 0.5,-0.5);
+	glVertex2f( 0,0);
+	glVertex2f( 1, 0);
+	glVertex2f( 1, -1);
+	glVertex2f( 0, -1);
 glEnd();
 glFinish();
 
