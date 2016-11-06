@@ -98,6 +98,55 @@ sub gl_do
 	return wantarray ? @ret : $ret[0];
 }
 
+sub gl_read_pixels
+{
+	my ($self, %opt) = @_;
+
+	require OpenGL;
+
+	$opt{origin} //= [ 0, 0 ];
+	$opt{size}   //= [ $self-> size ];
+	$opt{format} //= OpenGL::GL_BGR();
+	$opt{type}   //= OpenGL::GL_UNSIGNED_BYTE();
+
+	my $class = 'Prima::Image';
+	my %param;
+
+	$opt{format} = OpenGL::GL_BGR() if $opt{format} == OpenGL::GL_RGB();
+
+	if ( $opt{format} == OpenGL::GL_RGBA() || $opt{format} == OpenGL::GL_BGRA() || $opt{icon} ) {
+		$opt{format} = OpenGL::GL_BGR();
+		$class = 'Prima::Icon';
+		$param{maskType} = im::bpp8;
+	}
+
+	my $ptype;
+	if ( $opt{format} == OpenGL::GL_BGR() ) {
+		$ptype = im::RGB;
+		$opt{type} = OpenGL::GL_UNSIGNED_BYTE();
+	} elsif ( $opt{type} == OpenGL::GL_UNSIGNED_BYTE() || $opt{type} == OpenGL::GL_BYTE() ) {
+		$ptype = im::Byte;
+	} elsif ( $opt{type} == OpenGL::GL_UNSIGNED_SHORT() || $opt{type} == OpenGL::GL_SHORT() ) {
+		$ptype = im::Short;
+	} elsif ( $opt{type} == OpenGL::GL_UNSIGNED_INT() || $opt{type} == OpenGL::GL_INT() ) {
+		$ptype = im::Long;
+	} elsif ( $opt{type} == OpenGL::GL_FLOAT() ) {
+		$ptype = im::Float;
+	} else {
+		die "bad type";
+	}
+
+	my $i = $class->new(
+		size => $opt{size},
+		type => $ptype,
+		%param,
+	);
+	Prima::OpenGL::gl_read_image( $opt{origin}->[0], $opt{origin}->[1], $opt{format}, $opt{type}, $i );
+	Prima::OpenGL::gl_read_icon_mask( $opt{origin}->[0], $opt{origin}->[1], $i )
+		if $class eq 'Prima::Icon';
+	return $i;
+}
+
 __END__
 
 =pod
@@ -276,6 +325,35 @@ Executes &SUB within current GL context, restores context after the SUB is finis
 =item gl_flush
 
 Copies eventual off-screen GL buffer to the screen. Needs to be always called at the end of paint routine.
+
+=item gl_read_pixels origin => [0,0], size => [ $self->size ], format => GL_UNSIGNED_BYTE, type => GL_RGB, icon => 0
+
+Creates a C<Prima::Image> object, and efficiently fills the pixels from the GL
+context using glReadPixels call. If either C<< format => GL_RGBA >> or C<< icon
+=> 1 >> is set, creates a C<Prima::Icon> object, also filling the alpha
+channel. 
+
+The following combination of C<format> and C<type> produce these images:
+
+=over
+
+=item RGB
+
+C<< format => GL_RGB >> - im::RGB images . C<type> is ignored
+
+=item Grayscale images with C<format> set to GL_RED, GL_GREEN, GL_DEPTH_COMPONENT etc
+
+C<< type => GL_UNSIGNED_BYTE|GL_BYTE >> - im::Byte
+
+C<< type => GL_UNSIGNED_SHORT|GL_SHORT >> - im::Short
+
+C<< type => GL_UNSIGNED_INT|GL_INT >> - im::Long
+
+C<< type => GL_FLOAT >> - im::Float
+
+=back
+
+C<origin> and C<size> are sent as is to C<glReadPixels>.
 
 =back
 

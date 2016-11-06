@@ -4,16 +4,26 @@
 #include <DeviceBitmap.h>
 #include <Widget.h>
 #include <Image.h>
+#include <Icon.h>
 #include <Application.h>
 #include <Printer.h>
+#include <GL/gl.h>
 #include "prima_gl.h"
 
 PWidget_vmt CWidget;
 PDeviceBitmap_vmt CDeviceBitmap;
 PImage_vmt CImage;
+PIcon_vmt CIcon;
 PApplication_vmt CApplication;
 PPrinter_vmt CPrinter;
 #define var (( PWidget) widget)
+
+#ifndef GL_BGR
+#define GL_BGR 0x80e0
+#endif
+#ifndef GL_BGRA
+#define GL_BGRA 0x80e1
+#endif
 
 static void
 parse_tristate_char( int * target, SV * item, char * key, char * state_for_1, char * state_for_2)
@@ -93,6 +103,7 @@ BOOT:
 	CWidget = (PWidget_vmt)gimme_the_vmt( "Prima::Widget");
 	CDeviceBitmap = (PDeviceBitmap_vmt)gimme_the_vmt( "Prima::DeviceBitmap");
 	CImage = (PImage_vmt)gimme_the_vmt( "Prima::Image");
+	CIcon = (PIcon_vmt)gimme_the_vmt( "Prima::Icon");
 	CApplication = (PApplication_vmt)gimme_the_vmt( "Prima::Application");
 	CPrinter = (PPrinter_vmt)gimme_the_vmt( "Prima::Printer");
 }
@@ -190,3 +201,62 @@ CODE:
 OUTPUT:
 	RETVAL
 
+void
+gl_read_image(x,y,format,type,sv_obj)
+	int x
+	int y
+	int format
+	int type
+	SV * sv_obj
+PREINIT:
+	Handle object;
+	PImage i;
+CODE:
+	if ( !(object = gimme_the_mate(sv_obj)) || !kind_of(object, CImage))
+		croak("not an image");
+	i = PImage(object);
+
+	if ( i-> type == imRGB) {
+		if ( format != GL_BGR ) croak("bad format");
+	} else {
+		if ( format == GL_BGR || format == GL_RGB || format == GL_BGRA || format == GL_RGBA) croak("bad format");
+
+		switch (type) {
+		case GL_UNSIGNED_BYTE:
+		case GL_BYTE:
+			if ( i-> type != imByte ) croak("image is not imByte");
+			break;
+		case GL_UNSIGNED_SHORT:
+		case GL_SHORT:
+			if ( i-> type != imShort ) croak("image is not imShort");
+			break;
+		case GL_UNSIGNED_INT:
+		case GL_INT:
+			if ( i-> type != imLong ) croak("image is not imLong");
+			break;
+		case GL_FLOAT:
+			if ( i-> type != imFloat ) croak("image is not imFloat");
+			break;
+		default:
+			croak("bad type");
+		}
+	}
+	glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	glReadPixels(x,y,i->w,i->h,format,type,i->data);
+
+void
+gl_read_icon_mask(x,y,sv_obj)
+	int x
+	int y
+	SV * sv_obj
+PREINIT:
+	Handle object;
+	PIcon i;
+CODE:
+	if ( !(object = gimme_the_mate(sv_obj)) || !kind_of(object, CIcon) || PIcon(object)->maskType != imbpp8)
+		croak("not an 8-bit mask icon");
+	i = PIcon(object);
+	glPixelStorei(GL_PACK_ROW_LENGTH, 0);
+	glPixelStorei(GL_PACK_ALIGNMENT, 4);
+	glReadPixels(x,y,i->w,i->h,GL_ALPHA,GL_UNSIGNED_BYTE,i->mask);
