@@ -39,24 +39,19 @@ sub notify
 {
 	my ( $self, $command, @params ) = @_;
 
-	if ( $command eq 'Paint') {
-		unless ( Prima::OpenGL::context_push()) {
-			warn Prima::OpenGL::last_error();
-			return;
-		}
-		$self-> gl_select;
-		my $ret = $self-> SUPER::notify( $command, @params );
-		$self-> gl_flush;
-		Prima::OpenGL::context_pop();
+	return $self-> SUPER::notify( $command, @params )
+		if $command ne 'Paint';
 
-		return $ret;
-	} elsif ( $command eq 'SysHandle' ) {
-		$self-> gl_destroy;
-		$self-> gl_create( %{$self-> gl_config} );
-	} else {
-		return $self-> SUPER::notify( $command, @params );
+	unless ( Prima::OpenGL::context_push()) {
+		warn Prima::OpenGL::last_error();
+		return;
 	}
+	$self-> gl_select;
+	my $ret = $self-> SUPER::notify( $command, @params );
+	$self-> gl_flush;
+	Prima::OpenGL::context_pop();
 
+	return $ret;
 }
 
 sub gl_config
@@ -74,6 +69,13 @@ sub on_size
 	my ( $self, $ox, $oy, $x, $y) = @_;
 	$self-> gl_select;
 	glViewport(0,0,$x,$y);	
+}
+
+sub on_syshandle
+{
+	my $self = shift;
+	$self-> gl_destroy;
+	$self-> gl_create( %{$self-> gl_config} );
 }
 
 sub on_destroy { shift-> gl_destroy }
