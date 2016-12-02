@@ -201,62 +201,20 @@ CODE:
 OUTPUT:
 	RETVAL
 
-void
-gl_read_image(x,y,format,type,sv_obj)
-	int x
-	int y
-	int format
-	int type
+IV
+gl_image_ptr(sv_obj,mask)
 	SV * sv_obj
-PREINIT:
-	Handle object;
-	PImage i;
-CODE:
-	if ( !(object = gimme_the_mate(sv_obj)) || !kind_of(object, CImage))
-		croak("not an image");
-	i = PImage(object);
-
-	if ( i-> type == imRGB) {
-		if ( format != GL_BGR ) croak("bad format");
-	} else {
-		if ( format == GL_BGR || format == GL_RGB || format == GL_BGRA || format == GL_RGBA) croak("bad format");
-
-		switch (type) {
-		case GL_UNSIGNED_BYTE:
-		case GL_BYTE:
-			if ( i-> type != imByte ) croak("image is not imByte");
-			break;
-		case GL_UNSIGNED_SHORT:
-		case GL_SHORT:
-			if ( i-> type != imShort ) croak("image is not imShort");
-			break;
-		case GL_UNSIGNED_INT:
-		case GL_INT:
-			if ( i-> type != imLong ) croak("image is not imLong");
-			break;
-		case GL_FLOAT:
-			if ( i-> type != imFloat ) croak("image is not imFloat");
-			break;
-		default:
-			croak("bad type");
-		}
-	}
-	glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-	glPixelStorei(GL_PACK_ALIGNMENT, 4);
-	glReadPixels(x,y,i->w,i->h,format,type,i->data);
-
-void
-gl_read_icon_mask(x,y,sv_obj)
-	int x
-	int y
-	SV * sv_obj
+	int mask
 PREINIT:
 	Handle object;
 	PIcon i;
 CODE:
-	if ( !(object = gimme_the_mate(sv_obj)) || !kind_of(object, CIcon) || PIcon(object)->maskType != imbpp8)
-		croak("not an 8-bit mask icon");
+	if ( !(object = gimme_the_mate(sv_obj)) || !kind_of(object, CImage))
+		croak("not an image");
+	
 	i = PIcon(object);
-	glPixelStorei(GL_PACK_ROW_LENGTH, 0);
-	glPixelStorei(GL_PACK_ALIGNMENT, 4);
-	glReadPixels(x,y,i->w,i->h,GL_ALPHA,GL_UNSIGNED_BYTE,i->mask);
+	RETVAL = PTR2IV(
+		((kind_of(object, CIcon) && mask) ?
+		i->mask : i->data));
+OUTPUT:
+	RETVAL

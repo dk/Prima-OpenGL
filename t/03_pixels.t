@@ -8,7 +8,7 @@ use OpenGL;
 use Prima::OpenGL;
 use Prima::Application;
 
-plan tests => 30;
+plan tests => 34;
 
 my $x = Prima::DeviceBitmap-> new(
 	width  => 2,
@@ -78,6 +78,18 @@ is( $m->pixel(0,0), 0x000000FF, "rgbA(0,0)=1");
 is( $m->pixel(0,1), 0x000000FF, "rgbA(0,1)=1");
 is( $m->pixel(1,0), 0x000000FF, "rgbA(1,0)=1");
 is( $m->pixel(1,1), 0x000000FF, "rgbA(1,1)=1");
+
+$d->type(im::RGB);
+$d->color(0);
+$d->bar(0,0,1,1);
+$d->color(0xff8800);
+$d->bar(1,1,2,2);
+$d->gl_draw_pixels;
+$d = $x->gl_read_pixels( format => GL_RGB );
+is( $d->pixel(0,0), 0x00000000, "RGB(0,0)=0");
+is( $d->pixel(0,1), 0x00000000, "RGB(0,1)=0");
+is( $d->pixel(1,0), 0x00000000, "RGB(1,0)=0");
+is( $d->pixel(1,1), 0x00FF8800, "RGB(1,1)=1");
 
 $x-> gl_end_paint;
 

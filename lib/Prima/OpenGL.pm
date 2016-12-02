@@ -141,10 +141,73 @@ sub gl_read_pixels
 		type => $ptype,
 		%param,
 	);
-	Prima::OpenGL::gl_read_image( $opt{origin}->[0], $opt{origin}->[1], $opt{format}, $opt{type}, $i );
-	Prima::OpenGL::gl_read_icon_mask( $opt{origin}->[0], $opt{origin}->[1], $i )
+	OpenGL::glPixelStorei(OpenGL::GL_PACK_ROW_LENGTH(), 0);
+	OpenGL::glPixelStorei(OpenGL::GL_PACK_ALIGNMENT(), 4);
+	OpenGL::glReadPixels_c($opt{origin}->[0], $opt{origin}->[1], $i->size, $opt{format}, $opt{type}, Prima::OpenGL::gl_image_ptr($i,0));
+	OpenGL::glReadPixels_c($opt{origin}->[0], $opt{origin}->[1], $i->size, OpenGL::GL_ALPHA(), OpenGL::GL_UNSIGNED_BYTE(), Prima::OpenGL::gl_image_ptr($i,1))
 		if $class eq 'Prima::Icon';
+
 	return $i;
+}
+
+package 
+    Prima::Image; # double line needed for CPAN indexer, it thinks THIS is that module
+
+sub gl_image_format
+{
+	my ( $image ) = @_;
+	
+	require OpenGL;
+
+	my ($format, $type);
+
+	my $itype = $image->type;
+	if ( $itype == im::RGB ) {
+		$format = OpenGL::GL_BGR();
+		$type   = OpenGL::GL_UNSIGNED_BYTE();
+	} elsif ( $itype & im::GrayScale ) {
+		if ( $itype == im::Byte ) {
+			$type  = OpenGL::GL_UNSIGNED_BYTE();
+		} elsif ( $itype == im::Short ) {
+			$type  = OpenGL::GL_UNSIGNED_SHORT();
+		} elsif ( $itype == im::Long ) {
+			$type  = OpenGL::GL_UNSIGNED_INT();
+		} elsif ( $itype == im::Float ) {
+			$type  = OpenGL::GL_FLOAT();
+		} elsif ( $itype & im::RealNumber ) {
+			return undef, undef, im::Float;
+		} else {
+			return undef, undef, im::Byte;
+		}
+	} else {
+		return undef, undef, im::RGB;
+	}
+
+	return $format, $type;
+}
+
+sub gl_image_do
+{
+	my ( $image, $preferred_format, $sub ) = @_;
+	
+	require OpenGL;
+	my ( $opengl_format, $opengl_type, $prima_type ) = gl_image_format( $image );
+	return gl_image_do( $image->clone( type => $prima_type), $preferred_format, $sub ) if defined $prima_type;
+
+	$preferred_format //= $opengl_format;
+	die "format is needed" unless defined $preferred_format;
+	
+	OpenGL::glPixelStorei(OpenGL::GL_PACK_ROW_LENGTH(), 0);
+	OpenGL::glPixelStorei(OpenGL::GL_PACK_ALIGNMENT(), 4);
+	$sub->( $image, $preferred_format, $opengl_type, Prima::OpenGL::gl_image_ptr( $image, 0 ));
+}
+
+sub gl_draw_pixels
+{
+	gl_image_do( @_[0,1], sub {
+		my ( $image, $format, $type, $ptr ) = @_;
+		OpenGL::glDrawPixels_c( $image->size, $format, $type, $ptr);
+	} );
 }
 
 __END__
@@ -354,6 +417,29 @@ C<< type => GL_FLOAT >> - im::Float
 =back
 
 C<origin> and C<size> are sent as is to C<glReadPixels>.
+
+=back
+
+=head2 Prima::Image methods
+
+=over
+
+=item gl_image_do $IMAGE, preferred_format, $SUB
+
+Calls $SUB with the followign parameters: IMAGE, FORMAT, TYPE, DATA, suitable
+for use in OpenGL calls with _c postfix. To be used for implementation of
+Prima-specific wrappers of pixel-based calls.
+
+If the image has RGB type, the preferred_format is ignored, otherwise it has
+top be specificed to one of GL_ format constants, such as GL_COLOR_INDEX,
+GL_STENCIL_INDEX, GL_DEPTH_COMPONENT, GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA,
+GL_LUMINANCE, or GL_LUMINANCE_ALPHA. If the image does not have an OpenGL
+compatible type, it is made a copy and the copy is converted to one, and is
+then passed to $SUB.
+
+=item gl_draw_pixels $IMAGE, format
+
+Prima wrapper of C<glDrawPixels>.
 
 =back
 
