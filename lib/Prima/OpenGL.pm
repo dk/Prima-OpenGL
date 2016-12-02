@@ -357,6 +357,16 @@ C<origin> and C<size> are sent as is to C<glReadPixels>.
 
 =back
 
+=head1 LIMITATIONS
+
+On X11, the GL context is lost when the widget is implicitly re-created.
+L<Prima::GLWidget> tries to handle that by re-creating the context on that
+event, however, it doesn't restore GL properties set outside its C<gl_config>.
+One needs to track C<SysHandle> event and update the GL context manually if
+re-creation of GL-capable widgets takes place. 
+
+See F<examples/icosahedron.pl> for an example.
+
 =head1 AUTHOR
 
 Dmitry Karasik, E<lt>dmitry@karasik.eu.orgE<gt>.

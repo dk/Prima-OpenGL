@@ -188,6 +188,7 @@ sub create_window
 		layered => $show_off,
 		buffered => 0,
 		backColor => 0,
+		onSysHandle => sub { reset_gl($config{widget}, \%config) },
 		menuItems => [
 			['~Options' => [
 				['*' => '~Rotate' => 'Ctrl+R' => '^R' => sub { 
@@ -206,10 +207,6 @@ sub create_window
 				'~Layered' => 'Ctrl+Y' => '^Y' => sub { 
 					my $self = shift;
 					$self->layered( $self-> menu-> toggle( shift ));
-					$config{widget}-> send_to_back;
-					$config{widget}-> gl_destroy;
-					$config{widget}-> gl_create( %{$config{widget}->gl_config} );
-					reset_gl($config{widget} , \%config);
 				}],
 				['' => '~Buffered' => sub {
 					my $self = shift;

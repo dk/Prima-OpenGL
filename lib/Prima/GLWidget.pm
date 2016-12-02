@@ -38,20 +38,25 @@ sub init
 sub notify
 {
 	my ( $self, $command, @params ) = @_;
-		
-	return $self-> SUPER::notify( $command, @params )
-		unless $command eq 'Paint';
 
-	unless ( Prima::OpenGL::context_push()) {
-		warn Prima::OpenGL::last_error();
-		return;
+	if ( $command eq 'Paint') {
+		unless ( Prima::OpenGL::context_push()) {
+			warn Prima::OpenGL::last_error();
+			return;
+		}
+		$self-> gl_select;
+		my $ret = $self-> SUPER::notify( $command, @params );
+		$self-> gl_flush;
+		Prima::OpenGL::context_pop();
+
+		return $ret;
+	} elsif ( $command eq 'SysHandle' ) {
+		$self-> gl_destroy;
+		$self-> gl_create( %{$self-> gl_config} );
+	} else {
+		return $self-> SUPER::notify( $command, @params );
 	}
-	$self-> gl_select;
-	my $ret = $self-> SUPER::notify( $command, @params );
-	$self-> gl_flush;
-	Prima::OpenGL::context_pop();
 
-	return $ret;
 }
 
 sub gl_config
