@@ -186,28 +186,26 @@ sub gl_image_format
 	return $format, $type;
 }
 
-sub gl_image_do
+sub gl_image_prepare
 {
-	my ( $image, $preferred_format, $sub ) = @_;
+	my ( $image, $preferred_format ) = @_;
 	
 	require OpenGL;
 	my ( $opengl_format, $opengl_type, $prima_type ) = gl_image_format( $image );
-	return gl_image_do( $image->clone( type => $prima_type), $preferred_format, $sub ) if defined $prima_type;
+	return gl_image_prepare( $image->clone( type => $prima_type), $preferred_format ) if defined $prima_type;
 
 	$preferred_format //= $opengl_format;
 	die "format is needed" unless defined $preferred_format;
 	
 	OpenGL::glPixelStorei(OpenGL::GL_PACK_ROW_LENGTH(), 0);
 	OpenGL::glPixelStorei(OpenGL::GL_PACK_ALIGNMENT(), 4);
-	$sub->( $image, $preferred_format, $opengl_type, Prima::OpenGL::gl_image_ptr( $image, 0 ));
+	return $image, $preferred_format, $opengl_type, Prima::OpenGL::gl_image_ptr( $image, 0 );
 }
 
 sub gl_draw_pixels
 {
-	gl_image_do( @_[0,1], sub {
-		my ( $image, $format, $type, $ptr ) = @_;
-		OpenGL::glDrawPixels_c( $image->size, $format, $type, $ptr);
-	} );
+	my ( $image, $format, $type, $ptr ) = gl_image_prepare(@_);
+	OpenGL::glDrawPixels_c( $image->size, $format, $type, $ptr);
 }
 
 __END__
@@ -424,18 +422,19 @@ C<origin> and C<size> are sent as is to C<glReadPixels>.
 
 =over
 
-=item gl_image_do $IMAGE, preferred_format, $SUB
+=item gl_image_prepare $IMAGE, preferred_format
 
-Calls $SUB with the followign parameters: IMAGE, FORMAT, TYPE, DATA, suitable
-for use in OpenGL calls with _c postfix. To be used for implementation of
-Prima-specific wrappers of pixel-based calls.
+Prepares image for GL-compatible image pixel data call, and returns it together
+with the necessary GL constants. Returns IMAGE, FORMAT, TYPE, DATA, where IMAGE
+is either the original image or cloned copy with adjusted pixel format; FORMAT
+and TYPE are GL format and type constants. DATA is pixel storage pointer,
+suitable for use in OpenGL calls with _c postfix. It can be used for
+implementation of Prima-specific wrappers of pixel-based calls.
 
 If the image has RGB type, the preferred_format is ignored, otherwise it has
 top be specificed to one of GL_ format constants, such as GL_COLOR_INDEX,
 GL_STENCIL_INDEX, GL_DEPTH_COMPONENT, GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA,
-GL_LUMINANCE, or GL_LUMINANCE_ALPHA. If the image does not have an OpenGL
-compatible type, it is made a copy and the copy is converted to one, and is
-then passed to $SUB.
+GL_LUMINANCE, or GL_LUMINANCE_ALPHA. 
 
 =item gl_draw_pixels $IMAGE, format
 
