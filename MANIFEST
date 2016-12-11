@@ -13,6 +13,7 @@ examples/icosahedron.pl
 examples/basic.pl 
 examples/bitmap.pl 
 examples/image.pl 
+examples/triangle.pl 
 t/01_load.t
 t/02_basic.t
 t/03_pixels.t
