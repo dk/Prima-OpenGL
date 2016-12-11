@@ -432,7 +432,7 @@ suitable for use in OpenGL calls with _c postfix. It can be used for
 implementation of Prima-specific wrappers of pixel-based calls.
 
 If the image has RGB type, the preferred_format is ignored, otherwise it has
-top be specificed to one of GL_ format constants, such as GL_COLOR_INDEX,
+to be specificed to one of GL_ format constants, such as GL_COLOR_INDEX,
 GL_STENCIL_INDEX, GL_DEPTH_COMPONENT, GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA,
 GL_LUMINANCE, or GL_LUMINANCE_ALPHA. 
 
