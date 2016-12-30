@@ -103,34 +103,35 @@ sub gl_read_pixels
 	my ($self, %opt) = @_;
 
 	require OpenGL;
+	import OpenGL ':all';
 
 	$opt{origin} //= [ 0, 0 ];
 	$opt{size}   //= [ $self-> size ];
-	$opt{format} //= OpenGL::GL_BGR();
-	$opt{type}   //= OpenGL::GL_UNSIGNED_BYTE();
+	$opt{format} //= GL_BGR();
+	$opt{type}   //= GL_UNSIGNED_BYTE();
 
 	my $class = 'Prima::Image';
 	my %param;
 
-	$opt{format} = OpenGL::GL_BGR() if $opt{format} == OpenGL::GL_RGB();
+	$opt{format} = GL_BGR() if $opt{format} == GL_RGB();
 
-	if ( $opt{format} == OpenGL::GL_RGBA() || $opt{format} == OpenGL::GL_BGRA() || $opt{icon} ) {
-		$opt{format} = OpenGL::GL_BGR();
+	if ( $opt{format} == GL_RGBA() || $opt{format} == GL_BGRA() || $opt{icon} ) {
+		$opt{format} = GL_BGR();
 		$class = 'Prima::Icon';
 		$param{maskType} = im::bpp8;
 	}
 
 	my $ptype;
-	if ( $opt{format} == OpenGL::GL_BGR() ) {
+	if ( $opt{format} == GL_BGR() ) {
 		$ptype = im::RGB;
-		$opt{type} = OpenGL::GL_UNSIGNED_BYTE();
-	} elsif ( $opt{type} == OpenGL::GL_UNSIGNED_BYTE() || $opt{type} == OpenGL::GL_BYTE() ) {
+		$opt{type} = GL_UNSIGNED_BYTE();
+	} elsif ( $opt{type} == GL_UNSIGNED_BYTE() || $opt{type} == GL_BYTE() ) {
 		$ptype = im::Byte;
-	} elsif ( $opt{type} == OpenGL::GL_UNSIGNED_SHORT() || $opt{type} == OpenGL::GL_SHORT() ) {
+	} elsif ( $opt{type} == GL_UNSIGNED_SHORT() || $opt{type} == GL_SHORT() ) {
 		$ptype = im::Short;
-	} elsif ( $opt{type} == OpenGL::GL_UNSIGNED_INT() || $opt{type} == OpenGL::GL_INT() ) {
+	} elsif ( $opt{type} == GL_UNSIGNED_INT() || $opt{type} == GL_INT() ) {
 		$ptype = im::Long;
-	} elsif ( $opt{type} == OpenGL::GL_FLOAT() ) {
+	} elsif ( $opt{type} == GL_FLOAT() ) {
 		$ptype = im::Float;
 	} else {
 		die "bad type";
@@ -141,10 +142,10 @@ sub gl_read_pixels
 		type => $ptype,
 		%param,
 	);
-	OpenGL::glPixelStorei(OpenGL::GL_PACK_ROW_LENGTH(), 0);
-	OpenGL::glPixelStorei(OpenGL::GL_PACK_ALIGNMENT(), 4);
-	OpenGL::glReadPixels_c($opt{origin}->[0], $opt{origin}->[1], $i->size, $opt{format}, $opt{type}, Prima::OpenGL::gl_image_ptr($i,0));
-	OpenGL::glReadPixels_c($opt{origin}->[0], $opt{origin}->[1], $i->size, OpenGL::GL_ALPHA(), OpenGL::GL_UNSIGNED_BYTE(), Prima::OpenGL::gl_image_ptr($i,1))
+	glPixelStorei(GL_PACK_ROW_LENGTH(), 0);
+	glPixelStorei(GL_PACK_ALIGNMENT(), 4);
+	glReadPixels_c($opt{origin}->[0], $opt{origin}->[1], $i->size, $opt{format}, $opt{type}, Prima::OpenGL::gl_image_ptr($i,0));
+	glReadPixels_c($opt{origin}->[0], $opt{origin}->[1], $i->size, GL_ALPHA(), GL_UNSIGNED_BYTE(), Prima::OpenGL::gl_image_ptr($i,1))
 		if $class eq 'Prima::Icon';
 
 	return $i;
@@ -158,22 +159,23 @@ sub gl_image_format
 	my ( $image ) = @_;
 	
 	require OpenGL;
+	import OpenGL ':all';
 
 	my ($format, $type);
 
 	my $itype = $image->type;
 	if ( $itype == im::RGB ) {
-		$format = OpenGL::GL_BGR();
-		$type   = OpenGL::GL_UNSIGNED_BYTE();
+		$format = GL_BGR();
+		$type   = GL_UNSIGNED_BYTE();
 	} elsif ( $itype & im::GrayScale ) {
 		if ( $itype == im::Byte ) {
-			$type  = OpenGL::GL_UNSIGNED_BYTE();
+			$type  = GL_UNSIGNED_BYTE();
 		} elsif ( $itype == im::Short ) {
-			$type  = OpenGL::GL_UNSIGNED_SHORT();
+			$type  = GL_UNSIGNED_SHORT();
 		} elsif ( $itype == im::Long ) {
-			$type  = OpenGL::GL_UNSIGNED_INT();
+			$type  = GL_UNSIGNED_INT();
 		} elsif ( $itype == im::Float ) {
-			$type  = OpenGL::GL_FLOAT();
+			$type  = GL_FLOAT();
 		} elsif ( $itype & im::RealNumber ) {
 			return undef, undef, im::Float;
 		} else {
@@ -191,21 +193,23 @@ sub gl_image_prepare
 	my ( $image, $preferred_format ) = @_;
 	
 	require OpenGL;
+	import OpenGL ':all';
+
 	my ( $opengl_format, $opengl_type, $prima_type ) = gl_image_format( $image );
 	return gl_image_prepare( $image->clone( type => $prima_type), $preferred_format ) if defined $prima_type;
 
 	$preferred_format //= $opengl_format;
 	die "format is needed" unless defined $preferred_format;
 	
-	OpenGL::glPixelStorei(OpenGL::GL_PACK_ROW_LENGTH(), 0);
-	OpenGL::glPixelStorei(OpenGL::GL_PACK_ALIGNMENT(), 4);
+	glPixelStorei(GL_PACK_ROW_LENGTH(), 0);
+	glPixelStorei(GL_PACK_ALIGNMENT(), 4);
 	return $image, $preferred_format, $opengl_type, Prima::OpenGL::gl_image_ptr( $image, 0 );
 }
 
 sub gl_draw_pixels
 {
 	my ( $image, $format, $type, $ptr ) = gl_image_prepare(@_);
-	OpenGL::glDrawPixels_c( $image->size, $format, $type, $ptr);
+	glDrawPixels_c( $image->size, $format, $type, $ptr);
 }
 
 __END__
