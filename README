@@ -2,6 +2,9 @@ Prima extension for OpenGL drawing.
 
 Works on win32, cygwin and x11.
 
+Dependencies:
+    apt-get install libgl-dev
+
 Howto:
 
     perl Makefile.PL
