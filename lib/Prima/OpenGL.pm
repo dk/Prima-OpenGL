@@ -454,6 +454,9 @@ event, however, it doesn't restore GL properties set outside its C<gl_config>.
 One needs to track C<SysHandle> event and update the GL context manually if
 re-creation of GL-capable widgets takes place. 
 
+On Win32, re-creation of GL context on same window won't work
+( See L< https://www.opengl.org/wiki/Platform_specifics:_Windows#How_many_times_can_I_call_SetPixelFormat.3F > ).
+
 See F<examples/icosahedron.pl> for an example.
 
 =head1 AUTHOR
