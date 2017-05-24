@@ -31,31 +31,37 @@ glFinish();
 
 $x-> gl_flush;
 
+sub hex_is
+{
+	my ( $a, $b, $c) = @_;
+	return is(sprintf("%x", $a), sprintf("%x", $b), $c);
+}
+
 # RGB
 my $i = $x->gl_read_pixels( format => GL_RGB );
-is( $i->pixel(0,0), 0x000000FF, "rgb(0,0)=B");
-is( $i->pixel(0,1), 0x000000FF, "rgb(0,1)=B");
-is( $i->pixel(1,0), 0x00FF0000, "rgb(1,0)=R");
-is( $i->pixel(1,1), 0x000000FF, "rgb(1,1)=B");
+hex_is( $i->pixel(0,0), 0x000000FF, "rgb(0,0)=B");
+hex_is( $i->pixel(0,1), 0x000000FF, "rgb(0,1)=B");
+hex_is( $i->pixel(1,0), 0x00FF0000, "rgb(1,0)=R");
+hex_is( $i->pixel(1,1), 0x000000FF, "rgb(1,1)=B");
 
 # R/G/B
 $i = $x->gl_read_pixels( format => GL_BLUE );
-is( $i->pixel(0,0), 0xFF, "blue(0,0)=B");
-is( $i->pixel(0,1), 0xFF, "blue(0,0)=B");
-is( $i->pixel(1,0), 0x00, "blue(0,0)=0");
-is( $i->pixel(1,1), 0xFF, "blue(0,0)=B");
+hex_is( $i->pixel(0,0), 0xFF, "blue(0,0)=B");
+hex_is( $i->pixel(0,1), 0xFF, "blue(0,0)=B");
+hex_is( $i->pixel(1,0), 0x00, "blue(0,0)=0");
+hex_is( $i->pixel(1,1), 0xFF, "blue(0,0)=B");
 
 $i = $x->gl_read_pixels( format => GL_GREEN );
-is( $i->pixel(0,0), 0x00, "green(0,0)=0");
-is( $i->pixel(0,1), 0x00, "green(0,0)=0");
-is( $i->pixel(1,0), 0x00, "green(0,0)=0");
-is( $i->pixel(1,1), 0x00, "green(0,0)=0");
+hex_is( $i->pixel(0,0), 0x00, "green(0,0)=0");
+hex_is( $i->pixel(0,1), 0x00, "green(0,0)=0");
+hex_is( $i->pixel(1,0), 0x00, "green(0,0)=0");
+hex_is( $i->pixel(1,1), 0x00, "green(0,0)=0");
 
 $i = $x->gl_read_pixels( format => GL_RED );
-is( $i->pixel(0,0), 0x00, "red(0,0)=0");
-is( $i->pixel(0,1), 0x00, "red(0,0)=0");
-is( $i->pixel(1,0), 0xFF, "red(0,0)=R");
-is( $i->pixel(1,1), 0x00, "red(0,0)=0");
+hex_is( $i->pixel(0,0), 0x00, "red(0,0)=0");
+hex_is( $i->pixel(0,1), 0x00, "red(0,0)=0");
+hex_is( $i->pixel(1,0), 0xFF, "red(0,0)=R");
+hex_is( $i->pixel(1,1), 0x00, "red(0,0)=0");
 
 $i = $x->gl_read_pixels( format => GL_RED, type => GL_SHORT );
 is( $i->pixel(0,0), 0x00,   "red16(0,0)=0");
@@ -70,14 +76,14 @@ ok( $i->pixel(0,0) < 0.01,       "redf(0,0)=0");
 ok( $i->pixel(1,0) > 0.99,       "redf(0,0)=1.0f");
 
 my ( $d, $m ) = $x->gl_read_pixels( format => GL_RGBA )-> split;
-is( $d->pixel(0,0), 0x000000FF, "RGBa(0,0)=B");
-is( $d->pixel(0,1), 0x000000FF, "RGBa(0,1)=B");
-is( $d->pixel(1,0), 0x00FF0000, "RGBa(1,0)=R");
-is( $d->pixel(1,1), 0x000000FF, "RGBa(1,1)=B");
-is( $m->pixel(0,0), 0x000000FF, "rgbA(0,0)=1");
-is( $m->pixel(0,1), 0x000000FF, "rgbA(0,1)=1");
-is( $m->pixel(1,0), 0x000000FF, "rgbA(1,0)=1");
-is( $m->pixel(1,1), 0x000000FF, "rgbA(1,1)=1");
+hex_is( $d->pixel(0,0), 0x000000FF, "RGBa(0,0)=B");
+hex_is( $d->pixel(0,1), 0x000000FF, "RGBa(0,1)=B");
+hex_is( $d->pixel(1,0), 0x00FF0000, "RGBa(1,0)=R");
+hex_is( $d->pixel(1,1), 0x000000FF, "RGBa(1,1)=B");
+hex_is( $m->pixel(0,0), 0x000000FF, "rgbA(0,0)=1");
+hex_is( $m->pixel(0,1), 0x000000FF, "rgbA(0,1)=1");
+hex_is( $m->pixel(1,0), 0x000000FF, "rgbA(1,0)=1");
+hex_is( $m->pixel(1,1), 0x000000FF, "rgbA(1,1)=1");
 
 $d->type(im::RGB);
 $d->color(0);
@@ -86,10 +92,12 @@ $d->color(0xff8800);
 $d->bar(1,1,2,2);
 $d->gl_draw_pixels;
 $d = $x->gl_read_pixels( format => GL_RGB );
-is( $d->pixel(0,0), 0x00000000, "RGB(0,0)=0");
-is( $d->pixel(0,1), 0x00000000, "RGB(0,1)=0");
-is( $d->pixel(1,0), 0x00000000, "RGB(1,0)=0");
-is( $d->pixel(1,1), 0x00FF8800, "RGB(1,1)=1");
+hex_is( $d->pixel(0,0), 0x00000000, "RGB(0,0)=0");
+hex_is( $d->pixel(0,1), 0x00000000, "RGB(0,1)=0");
+hex_is( $d->pixel(1,0), 0x00000000, "RGB(1,0)=0");
+my $c = $d->pixel(1,1);
+my ( $b, $g, $r ) = (( $c & 0xff), ($c >> 8) & 0xff, ($c >> 16) & 0xff);
+ok( $r > 0xf0 && $g > 0x80 && $g < 0x90 && $b == 0, "RGB(1,1)=1");
 
 $x-> gl_end_paint;
 
