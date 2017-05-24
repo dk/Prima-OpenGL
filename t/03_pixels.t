@@ -97,7 +97,7 @@ hex_is( $d->pixel(0,1), 0x00000000, "RGB(0,1)=0");
 hex_is( $d->pixel(1,0), 0x00000000, "RGB(1,0)=0");
 my $c = $d->pixel(1,1);
 my ( $b, $g, $r ) = (( $c & 0xff), ($c >> 8) & 0xff, ($c >> 16) & 0xff);
-ok( $r > 0xf0 && $g > 0x80 && $g < 0x90 && $b == 0, "RGB(1,1)=1");
+ok( $r > 0xf0 && $g > 0x78 && $g < 0x98 && $b == 0, "RGB(1,1)=1");
 
 $x-> gl_end_paint;
 
