@@ -22,8 +22,8 @@ use Prima qw(Application Buttons GLWidget);
 use OpenGL qw(:glfunctions :glconstants);
 
 my $win32     = $^O =~ /win32/i;
-my $show_off  = $::application->get_system_value( sv::LayeredWidgets );
 my $composite = $::application->get_system_value( sv::CompositeDisplay );
+my $show_off  = $::application->get_system_value( sv::LayeredWidgets ) && $composite;
 my $gl_buffer = 1;
 
 sub icosahedron
