@@ -114,7 +114,7 @@ sub init
 sub display
 {
 	my $config = shift;
-	glClearColor(0,0,0,0);
+	glClearColor(0,0.0000001,0,0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix();
 	glRotatef(23*sin($config-> {spin}*3.14/180),1,0,0);
