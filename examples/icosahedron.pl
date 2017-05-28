@@ -163,7 +163,12 @@ sub create_gl_widget
 			glEnable(GL_DEPTH_TEST);
 			glRotatef(0.12,1,0,0);
 		},
-		onPaint      => sub { display($config) },
+		onPaint   => sub {
+			my ($self, $canvas) = @_;
+			$self->gl_paint_state ?
+				display($config) :
+				$canvas->clear;
+		},
 		onMouseDown  => sub { $config->{grab} = 1 },
 		onMouseUp    => sub { $config->{grab} = 0 },
 	);
