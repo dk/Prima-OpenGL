@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+BEGIN { $ENV{PERL_DL_NONLAZY} = 0; }
 use strict;
 use warnings;
 use Test::More;
