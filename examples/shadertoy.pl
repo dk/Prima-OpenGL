@@ -1,4 +1,3 @@
-#!perl -w
 use strict;
 use FindBin qw($Bin);
 use Time::HiRes 'time';
