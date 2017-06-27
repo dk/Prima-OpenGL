@@ -206,6 +206,10 @@ $window = Prima::MainWindow->create(
 			my ( $window, $menu ) = @_;
 			$window->menu->toggle($menu) ? $window->Timer->stop : $window->Timer->start;
 		} ],
+		[ '~Screenshot' => 'F5' => kb::F5 => sub {
+			$gl_widget-> gl_read_pixels-> save('screenshot.png');
+			print "Saved!\n";
+		} ],
 		[],
 		[ 'E~xit' => 'Alt+X' => '@X' => sub { shift-> close }],
 	]]],
