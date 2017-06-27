@@ -93,8 +93,7 @@ sub init_shader
 		xs_buffer( my $length, 8 );
 		xs_buffer( my $size,   8 );
 		xs_buffer( my $type,   8 );
-	        # Names are maximum 16 chars:
-		xs_buffer( my $name, 16);
+		xs_buffer( my $name, 16); # Names are maximum 16 chars:
 	        glGetActiveUniform_c( $program, $index, 16, iv_ptr($length), iv_ptr($size), iv_ptr($type), $name);
 		$length = unpack 'I', $length;
 		$name = substr $name, 0, $length;
@@ -102,44 +101,42 @@ sub init_shader
 	}
 }
 
-sub update_uniforms
+sub set_uniform
 {
-	$time = time - $started;
-	glProgramUniform1f( $program, $uniforms{iGlobalTime}, $time)             if defined $uniforms{iGlobalTime};
-	glProgramUniform3f( $program, $uniforms{iResolution}, $xres, $yres, 1.0) if defined $uniforms{iResolution};
-	if ( $state->{grab} && defined $uniforms{iMouse} ) {
-		my $iMouse = pack_GLfloat($gl_widget->pointerPos,0,0);
-		glProgramUniform4fv_c( $program, $uniforms{"iMouse"}, length($iMouse) / (4*4), iv_ptr($iMouse));
-	}
+	my ( $func, $name, @var ) = @_;
+	return unless defined $uniforms{$name};
+	my $method = 'glProgramUniform' . $func;
+	no strict 'refs';
+	$method->($program, $uniforms{$name}, @var);
 }
 
-$window = Prima::MainWindow->create(
-	text => 'Shader toy',
-	size => [ 640, 480 ],
-	menuItems => [['~Options' => [
-		[ ( $fullscreen ? '*' : '') . 'fullscreen', '~Fullscreen', 'Alt+Enter', km::Alt|kb::Enter, sub {
-			my ( $window, $menu ) = @_;
-			$fullscreen = $window->menu->toggle($menu);
-			recreate_gl_widget();
-		} ],
-		[ 'pause' => '~Play/Pause' => 'Space' => kb::Space => sub {
-			my ( $window, $menu ) = @_;
-			if ( $window->menu->toggle($menu) ) {
-				$window->Timer->stop;
-			} else {
-				$window->Timer->start;
-			}
-		} ],
-		[],
-		[ 'E~xit' => 'Alt+X' => '@X' => sub { shift-> close }],
-	]]],
-);
-
-sub leave_fullscreen
+sub gl_paint
 {
-    $fullscreen = 0;
-    $window->menu->uncheck('fullscreen');
-    recreate_gl_widget();
+	my $self = shift;
+	
+	unless( $gl_initialized ) {
+		my $err = OpenGL::Modern::glewInit;
+		die "Couldn't initialize Glew: ".glewGetErrorString($err) unless $err == GLEW_OK;
+		$gl_initialized = 1;
+	}
+	init_shader unless $program;
+
+	glUseProgram( $program );
+
+	$time = time - $started;
+	set_uniform( '1f', iGlobalTime => $time);
+	set_uniform( '3f', iResolution => $xres, $yres, 1.0);
+	set_uniform( '4fv_c', iMouse => 1, iv_ptr(my $iMouse = pack_GLfloat($gl_widget->pointerPos,0,0))) if $state->{grab};
+
+	glBegin(GL_POLYGON);
+		glVertex2f(-1,-1);
+		glVertex2f(-1, 1);
+		glVertex2f( 1, 1);
+		glVertex2f( 1,-1);
+	glEnd();
+
+	glUseProgram( 0 );
+	glFlush;
 }
 
 sub create_gl_widget
@@ -151,41 +148,26 @@ sub create_gl_widget
 			clipOwner  => 0,
 			origin     => [@{$primary}[0,1]],
 			size       => [@{$primary}[2,3]],
-			onLeave    => \&leave_fullscreen,
+			onLeave    => sub {
+				$fullscreen = 0;
+				$window->menu->uncheck('fullscreen');
+				$gl_widget->destroy;
+				create_gl_widget();
+			},
 		);
 	} else {
 		%param = (
 			growMode   => gm::Client,
-			rect       => [0, 0, $window->width, $window->height],
+			rect       => [0, 0, $window->size],
 		);
 	}
 
 	$gl_widget = $window->insert( GLWidget =>
 		%param,
-		onPaint => sub {
-			my $self = shift;
-	
-			unless( $gl_initialized ) {
-				my $err = OpenGL::Modern::glewInit;
-				die "Couldn't initialize Glew: ".glewGetErrorString($err) unless $err == GLEW_OK;
-				$gl_initialized = 1;
-	                }
-			init_shader unless $program;
-
-			glUseProgram( $program );
-			update_uniforms;
-			glBegin(GL_POLYGON);
-				glVertex2f(-1,-1);
-				glVertex2f(-1, 1);
-				glVertex2f( 1, 1);
-				glVertex2f( 1,-1);
-			glEnd();
-			glUseProgram( 0 );
-			glFlush;
-	        },
+		onPaint      => \&gl_paint,
 	        onMouseDown  => sub { $state->{grab} = 1 },
 	        onMouseUp    => sub { $state->{grab} = 0 },
-	        onSize       => sub { ( $xres,$yres ) = shift->size },
+	        onSize       => sub { ( $xres, $yres ) = shift->size },
 	        onClose      => sub {
 			glUseProgram(0);
 			glDetachShader( $program, $_ ) for values %shaders;
@@ -201,21 +183,6 @@ sub create_gl_widget
     $gl_widget->focus if $fullscreen;
 }
 
-sub recreate_gl_widget
-{
-	$gl_widget->destroy;
-	create_gl_widget();
-}
-
-create_gl_widget();
-
-$window->insert( Timer =>
-	timeout => 10,
-	name    => 'Timer',
-	onTick  => sub { $gl_widget->repaint }
-)->start;
-				
-
 local $/;
 if ( $ARGV[0] && open(F, '<', $ARGV[0])) {
 	$shader_text = <F>;
@@ -224,6 +191,33 @@ if ( $ARGV[0] && open(F, '<', $ARGV[0])) {
 	$shader_text = <DATA>;
 	close(DATA);
 }
+
+$window = Prima::MainWindow->create(
+	text => 'Shader toy',
+	size => [ 640, 480 ],
+	menuItems => [['~Options' => [
+		[ ( $fullscreen ? '*' : '') . 'fullscreen', '~Fullscreen', 'Alt+Enter', km::Alt|kb::Enter, sub {
+			my ( $window, $menu ) = @_;
+			$fullscreen = $window->menu->toggle($menu);
+			$gl_widget->destroy;
+			create_gl_widget();
+		} ],
+		[ 'pause' => '~Play/Pause' => 'Space' => kb::Space => sub {
+			my ( $window, $menu ) = @_;
+			$window->menu->toggle($menu) ? $window->Timer->stop : $window->Timer->start;
+		} ],
+		[],
+		[ 'E~xit' => 'Alt+X' => '@X' => sub { shift-> close }],
+	]]],
+);
+
+create_gl_widget();
+
+$window->insert( Timer =>
+	timeout => 10,
+	name    => 'Timer',
+	onTick  => sub { $gl_widget->repaint }
+)->start;
 
 run Prima;
 
