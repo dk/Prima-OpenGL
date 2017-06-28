@@ -333,6 +333,14 @@ Pushes the current GL context on an internal stack; there can be only 32 entries
 
 Pops the top GL context from the stack, and selects it. Returns success flag.
 
+=item is_direct($ctx)
+
+On X11, returns True if ctx is a direct rendering context, False otherwise.
+Direct rendering contexts pass rendering commands directly from the calling
+process's address space to the rendering system, bypassing the X server.
+Nondirect rendering contexts pass all rendering commands to the X server.
+
+On Win32 return True.
 
 =item last_error
 

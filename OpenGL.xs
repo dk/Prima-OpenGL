@@ -218,3 +218,11 @@ CODE:
 		i->mask : i->data));
 OUTPUT:
 	RETVAL
+
+int
+is_direct(context)
+	void *context
+CODE:
+	RETVAL = context ? gl_is_direct((Handle) context) : 0;
+OUTPUT:
+	RETVAL

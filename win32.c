@@ -419,6 +419,13 @@ gl_context_pop(void)
 	return wglMakeCurrent( stack[stack_ptr].dc, stack[stack_ptr].gl);
 }
 
+Bool
+gl_is_direct(Handle context)
+{
+	CLEAR_ERROR;
+	return true;
+}
+
 #ifdef __cplusplus
 }
 #endif
