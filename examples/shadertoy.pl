@@ -1,3 +1,17 @@
+BEGIN {
+	eval "use OpenGL::Modern;";
+	if ( $@) {
+		warn <<DIE;
+***
+This example needs optional OpenGL::Modern module installed. 
+Please run 'cpan OpenGL::Modern'. If the example still doesn't
+work, please file a bug report!
+***
+DIE
+		exit(1);
+	}
+};
+
 use strict;
 use FindBin qw($Bin);
 use Time::HiRes 'time';
@@ -13,7 +27,7 @@ use OpenGL::Modern::Helpers qw(
 	glGetProgramiv_p
 	croak_on_gl_error
 );
-use Prima qw(Application GLWidget);
+use Prima qw(Application GLWidget OpenGL::Modern);
 
 my (%uniforms, %shaders, $shader_text, $program);
 my ($gl_initialized, $fullscreen, $xres, $yres, $time, $state, $frames);
@@ -113,11 +127,6 @@ sub gl_paint
 {
 	my $self = shift;
 	
-	unless( $gl_initialized ) {
-		my $err = OpenGL::Modern::glewInit;
-		die "Couldn't initialize Glew: ".glewGetErrorString($err) unless $err == GLEW_OK;
-		$gl_initialized = 1;
-	}
 	init_shader unless $program;
 
 	glUseProgram( $program );
@@ -191,6 +200,8 @@ if ( $ARGV[0] && open(F, '<', $ARGV[0])) {
 	close(DATA);
 }
 
+$::application->glew_init;
+	
 $window = Prima::MainWindow->create(
 	text => 'Shader toy',
 	size => [ 640, 480 ],

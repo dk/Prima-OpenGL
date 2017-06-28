@@ -5,6 +5,9 @@ Works on win32, cygwin and x11.
 Dependencies:
     apt-get install libgl-dev
 
+Optional dependencies:
+    cpan OpenGL::Modern
+
 Howto:
 
     perl Makefile.PL
