@@ -145,7 +145,7 @@ CODE:
 	else
 		croak("bad object");
 
-	if ( need_paint_state && !PObject(object)-> options. optInDraw )
+	if ( need_paint_state && !( PObject(object)-> options. optInDraw || PObject(object)-> options. optInDrawInfo))
 		croak("object not in paint state");
 	context = gl_context_create(object, &request);
 
