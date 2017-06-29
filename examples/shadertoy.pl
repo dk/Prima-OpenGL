@@ -200,8 +200,6 @@ if ( $ARGV[0] && open(F, '<', $ARGV[0])) {
 	close(DATA);
 }
 
-$::application->glew_init;
-	
 $window = Prima::MainWindow->create(
 	text => 'Shader toy',
 	size => [ 640, 480 ],

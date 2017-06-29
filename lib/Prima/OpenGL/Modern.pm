@@ -2,25 +2,29 @@ package Prima::OpenGL::Modern;
 
 use strict;
 use warnings;
-use Prima;
-use Prima::OpenGL;
+use Prima qw(OpenGL GLWidget);
 use OpenGL::Modern qw(glewInit glewGetErrorString GLEW_OK);
 
-sub Prima::Application::glew_init
+my $glew_initialized;
+
+sub glew_init
 {
-	my $self = shift;
+	return unless $glew_initialized;
+	$glew_initialized++;
+
 	my $ret = undef;
-	$self->begin_paint_info or return 0;
-	unless ($self->gl_begin_paint) {
-		$self->end_paint_info;
-		return Prima::OpenGL::last_error();
-	}
 	my $err = glewInit;
 	$ret = glewGetErrorString($err) unless $err == GLEW_OK;
-	$self->gl_destroy;
-	$self->end_paint_info;
 	return $ret;
 }
+
+sub paint_hook {
+	my $err = glew_init();
+	warn $err if defined $err;
+	@Prima::GLWidget::paint_hooks = grep { $_ != \&paint_hook } @Prima::GLWidget::paint_hooks;
+}
+
+push @Prima::GLWidget::paint_hooks, \&paint_hook;
 
 1;
 
@@ -35,14 +39,12 @@ Prima::OpenGL::Modern - Prima support for GLEW library
 Warning: OpenGL::Modern is highly experimental between versions, and might not work with this code.
 
 It is therefore the module is not a prerequisite, so if you need it you need to install it yourself.
-It exports a single function C<glew_init> into C<Prima::Application> space, because GLEW needs a
-GL context to get initialized properly.
+The GLEW library is automatically initialized on a first paint event of a GLWidget. If you don't use
+that, you need to initialize the library yourself using its only C<glew_init> function
 
 =head1 SYNOPSIS
 
    use Prima qw(Application OpenGL::Modern);
-   my $err = $::application->glew_init;
-   die $err if $err;
 
 =head1 AUTHOR
 

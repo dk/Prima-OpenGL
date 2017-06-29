@@ -6,7 +6,7 @@ use Prima;
 use OpenGL;
 use Prima::OpenGL;
 
-use vars qw(@ISA);
+use vars qw(@ISA @paint_hooks);
 @ISA = qw(Prima::Widget);
 
 sub profile_default
@@ -47,6 +47,7 @@ sub notify
 		return;
 	}
 	$self-> gl_select;
+	$_->($self) for @paint_hooks;
 	my $ret = $self-> SUPER::notify( $command, @params );
 	$self-> gl_flush;
 	Prima::OpenGL::context_pop();
