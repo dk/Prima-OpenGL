@@ -9,7 +9,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 
 sub dl_load_flags { 0x01 };
 
-$VERSION = '0.08';
+$VERSION = '1.00';
 @EXPORT = qw();
 @EXPORT_OK = qw();
 %EXPORT_TAGS = ();
