@@ -25,16 +25,6 @@ sub init
 {
 	glutInit;
 
-	$shader = new OpenGL::Shader('GLSL');
-	die "This program requires support for GLSL shaders.\n" unless $shader;
-
-	my $fragment = fragment_shader();
-	my $vertex   = vertex_shader();
-	my $info     = $shader->Load($fragment, $vertex);
-	print $info if $info;
-
-	$shader->Enable;
-	
 	glMaterialfv_p(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, 1, .7, .7, 1);
 	glMaterialfv_p(GL_FRONT_AND_BACK, GL_SPECULAR,	  1,  1,  1, 1);
 	glMaterialf   (GL_FRONT_AND_BACK, GL_SHININESS,	  50  );
@@ -55,6 +45,19 @@ sub init
 	glNewList($teapot, GL_COMPILE);
 	glutSolidTeapot(4);
 	glEndList;
+
+	$shader = new OpenGL::Shader('GLSL');
+	unless ($shader) {
+		warn "This program requires support for GLSL shaders.\n" ;
+		return;
+	}
+
+	my $fragment = fragment_shader();
+	my $vertex   = vertex_shader();
+	my $info     = $shader->Load($fragment, $vertex);
+	print $info if $info;
+
+	$shader->Enable;
 }
 
 sub cb_draw 
@@ -88,6 +91,7 @@ $window = Prima::MainWindow->create(
 		],
 	],
 );
+$window->menu->disable('shader') unless $shader;
 
 $gl_widget = $window->insert( GLWidget =>
 	selectable => 1,
