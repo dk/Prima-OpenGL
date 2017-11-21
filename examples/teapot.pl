@@ -18,7 +18,6 @@ use OpenGL::Shader;
 use Time::HiRes qw(time);
 use Prima qw(Application OpenGL GLWidget);
 
-
 my ($window, $gl_widget, $teapot, $shader);
 
 sub init
@@ -41,10 +40,22 @@ sub init
 	glLoadIdentity;
 	glOrtho(0, 16, 0, 16, -10, 10);
 	glMatrixMode(GL_MODELVIEW);
+
+	# freeglut dirty workaround
+	my $g = glutCreateWindow('');
+	glutDisplayFunc(sub {});
+	glutReshapeFunc(sub {});
+	$gl_widget->gl_select;
+
 	$teapot = glGenLists(1);
 	glNewList($teapot, GL_COMPILE);
 	glutSolidTeapot(4);
 	glEndList;
+
+	glutHideWindow();
+	glutMainLoopEvent();
+	glutDestroyWindow($g);
+	$gl_widget->gl_select;
 
 	$shader = new OpenGL::Shader('GLSL');
 	unless ($shader) {
@@ -91,7 +102,6 @@ $window = Prima::MainWindow->create(
 		],
 	],
 );
-$window->menu->disable('shader') unless $shader;
 
 $gl_widget = $window->insert( GLWidget =>
 	selectable => 1,
@@ -103,6 +113,7 @@ $gl_widget = $window->insert( GLWidget =>
 
 $gl_widget->gl_select;
 init;
+$window->menu->disable('shader') unless $shader;
 
 $window->insert( Timer => 
 	timeout => 100,
