@@ -54,6 +54,7 @@ select_visual( Display * display, int screen, int * attr_list)
 	int n_attrs;
 	GLXFBConfig * fb;
 	fb = glXChooseFBConfig(display,  screen,  attr_list, &n_attrs);
+	if ( !fb) return NULL;
 	return glXGetVisualFromFBConfig( display, *fb);
 }
 
@@ -260,6 +261,7 @@ gl_error_string(char * buf, int len)
 	case ERROR_STACK_OVERFLOW:
 		return "No more space for GL contexts on stack";
 	}
+	return NULL;
 }
 
 Bool
