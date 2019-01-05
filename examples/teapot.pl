@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Purpose: Simple demo of per-pixel lighting with GLSL and OpenGL::Shader
 
 # Copyright (c) 2007, Geoff Broadwell; this script is released
