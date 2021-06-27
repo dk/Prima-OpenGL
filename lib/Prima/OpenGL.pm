@@ -62,7 +62,7 @@ sub gl_paint_state
 sub gl_select
 {
 	my $ctx = shift-> {__gl_context};
-	Prima::OpenGL::context_make_current($ctx) if $ctx;
+	return $ctx ? Prima::OpenGL::context_make_current($ctx) : 0;
 }
 
 sub gl_unselect
