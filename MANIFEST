@@ -1,6 +1,6 @@
 MANIFEST
 Changes
-README
+README.md
 Makefile.PL
 OpenGL.xs
 win32.c
