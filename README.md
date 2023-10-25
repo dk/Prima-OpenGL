@@ -8,7 +8,7 @@ Dependencies
 
 Ubuntu: apt-get install libgl-dev
 
-Strawberry perl: https://prima.eu.org/download/freeglut-win64.zip
+Strawberry perl: http://prima.eu.org/download/freeglut-win64.zip
 
 Optional dependencies
 ---------------------
