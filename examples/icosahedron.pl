@@ -254,6 +254,7 @@ sub create_window
 		origin  => [ 5, 5 ],
 		text    => '~Quit',
 		onClick => sub { $::application-> close },
+		autoShaping => 1,
 	);
 }
 
