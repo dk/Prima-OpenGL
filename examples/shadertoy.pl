@@ -27,7 +27,7 @@ use OpenGL::Modern::Helpers qw(
 	glGetProgramiv_p
 	croak_on_gl_error
 );
-use Prima qw(Application GLWidget OpenGL::Modern);
+use Prima qw(Application GLWidget OpenGL);
 
 my (%uniforms, %shaders, $program);
 my ($gl_initialized, $fullscreen, $xres, $yres, $time, $state, $frames);
