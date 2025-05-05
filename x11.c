@@ -78,9 +78,15 @@ gl_context_create( Handle widget, GLRequest * request)
 		*(attr++) = request-> in; \
 	}
 
-	if ( request-> pixels         == GLREQ_PIXEL_RGBA) *(attr++) = GLX_RGBA;
-	if ( request-> double_buffer  == GLREQ_TRUE) *(attr++) = GLX_DOUBLEBUFFER;
-	if ( request-> stereo         == GLREQ_TRUE) *(attr++) = GLX_STEREO;
+	if ( request-> pixels         == GLREQ_PIXEL_RGBA) {
+		*(attr++) = GLX_RENDER_TYPE;
+		*(attr++) = GLX_RGBA_BIT;
+	}
+	ATTR( double_buffer   , GLX_DOUBLEBUFFER     )
+	if ( request-> stereo         == GLREQ_TRUE) {
+		*(attr++) = GLX_STEREO;
+		*(attr++) = True;
+	}
 	ATTR( layer           , GLX_LEVEL            )
 	ATTR( color_bits      , GLX_BUFFER_SIZE      )
 	ATTR( aux_buffers     , GLX_AUX_BUFFERS      )
@@ -247,7 +253,7 @@ gl_error_string(char * buf, int len)
 	case 0:
 		return NULL;
 	case ERROR_CHOOSE_VISUAL:
-		return "glXChooseVisual: cannot find a requested GL visual";
+		return "glXChooseFBConfig: cannot find a requested GL visual";
 	case ERROR_CREATE_CONTEXT:
 		return "glXCreateContext error";
 	case ERROR_OTHER:
