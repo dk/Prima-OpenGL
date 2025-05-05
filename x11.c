@@ -75,7 +75,7 @@ gl_context_create( Handle widget, GLRequest * request)
 #define ATTR(in,out) \
 	if ( request-> in) { \
 		*(attr++) = out; \
-		*(attr++) = request-> in; \
+		*(attr++) = request-> in == GLREQ_TRUE ? True : False; \
 	}
 
 	if ( request-> pixels         == GLREQ_PIXEL_RGBA) {
