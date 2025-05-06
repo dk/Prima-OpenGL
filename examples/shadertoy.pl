@@ -1,9 +1,9 @@
 BEGIN {
-	eval "use OpenGL::Modern;";
+	eval "use OpenGL::Modern 0.0401;";
 	if ( $@) {
 		warn <<DIE;
 ***
-This example needs optional OpenGL::Modern module installed.
+This example needs optional OpenGL::Modern module version 0.0401 installed.
 Please run 'cpan OpenGL::Modern'. If the example still doesn't
 work, please file a bug report!
 ***
@@ -112,7 +112,7 @@ sub init_shader
 	        glGetActiveUniform_c( $program, $index, 16, iv_ptr($length), iv_ptr($size), iv_ptr($type), $name);
 		$length = unpack 'I', $length;
 		$name = substr $name, 0, $length;
-		$uniforms{ $name } = glGetUniformLocation_c( $program, $name);
+		$uniforms{ $name } = glGetUniformLocation($program, $name);
 	}
 }
 
