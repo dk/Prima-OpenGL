@@ -78,9 +78,18 @@ gl_context_create( Handle widget, GLRequest * request)
 		*(attr++) = request-> in; \
 	}
 
-	if ( request-> pixels         == GLREQ_PIXEL_RGBA) *(attr++) = GLX_RGBA;
-	if ( request-> double_buffer  == GLREQ_TRUE) *(attr++) = GLX_DOUBLEBUFFER;
-	if ( request-> stereo         == GLREQ_TRUE) *(attr++) = GLX_STEREO;
+	if ( request-> pixels         == GLREQ_PIXEL_RGBA) {
+		*(attr++) = GLX_RENDER_TYPE;
+		*(attr++) = GLX_RGBA_BIT;
+	}
+	if ( request-> double_buffer  != GLREQ_DONTCARE) {
+		*(attr++) = GLX_DOUBLEBUFFER;
+		*(attr++) = (request-> double_buffer == GLREQ_TRUE) ? True : False;
+	}
+	if ( request-> stereo         == GLREQ_TRUE) {
+		*(attr++) = GLX_STEREO;
+		*(attr++) = True;
+	}
 	ATTR( layer           , GLX_LEVEL            )
 	ATTR( color_bits      , GLX_BUFFER_SIZE      )
 	ATTR( aux_buffers     , GLX_AUX_BUFFERS      )
@@ -94,10 +103,10 @@ gl_context_create( Handle widget, GLRequest * request)
 	ATTR( accum_green_bits, GLX_ACCUM_GREEN_SIZE )
 	ATTR( accum_blue_bits , GLX_ACCUM_BLUE_SIZE  )
 	ATTR( accum_alpha_bits, GLX_ACCUM_ALPHA_SIZE )
-	
+
 	switch ( request-> target) {
 	case GLREQ_TARGET_BITMAP:
-	case GLREQ_TARGET_IMAGE: 
+	case GLREQ_TARGET_IMAGE:
 		*(attr++) = GLX_X_RENDERABLE;
 		*(attr++) = 1;
 		*(attr++) = GLX_DRAWABLE_TYPE;
@@ -105,7 +114,7 @@ gl_context_create( Handle widget, GLRequest * request)
 		break;
 	}
 
-	*(attr++) = 0;
+	*(attr++) = None;
 
 	if ( request-> target == GLREQ_TARGET_WINDOW && sys-> flags. layered) {
 		visual = sys-> visual;
@@ -247,7 +256,7 @@ gl_error_string(char * buf, int len)
 	case 0:
 		return NULL;
 	case ERROR_CHOOSE_VISUAL:
-		return "glXChooseVisual: cannot find a requested GL visual";
+		return "glXChooseFBConfig: cannot find a FB config";
 	case ERROR_CREATE_CONTEXT:
 		return "glXCreateContext error";
 	case ERROR_OTHER:
