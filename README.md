@@ -29,6 +29,11 @@ Where
 
 http://github.com/dk/Prima-OpenGL
 
+MacOSX
+------
+
+Compile Prima as `perl Makefile.PL WITH_HOMEBREW=0`. This is a horrible hack.
+
 Author
 ------
 
