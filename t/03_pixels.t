@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Test::More;
 use Prima::sys::Test;
-use OpenGL;
+use OpenGL::Modern qw(:all);
 use Prima::OpenGL;
 use Prima::Application;
 

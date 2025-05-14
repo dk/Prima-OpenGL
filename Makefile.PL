@@ -32,6 +32,7 @@ WriteMakefile(
 	MIN_PERL_VERSION   => '5.012',
 	PREREQ_PM          => {
 		'Prima'		=> 1.74,
+		'OpenGL::Modern' => 0.04,
 	},
 	CONFIGURE_REQUIRES => {
 		'Prima'		=> 0,

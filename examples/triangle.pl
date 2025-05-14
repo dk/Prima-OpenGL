@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use OpenGL;
+use OpenGL::Modern qw(:all);
 use Prima qw(Application GLWidget);
 
 $::application-> insert( GLWidget => 
