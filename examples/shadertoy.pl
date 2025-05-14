@@ -171,6 +171,7 @@ sub create_gl_widget
 			glDeleteShader( $_ ) for values %shaders;
 	        },
 	);
+	die "Failed to get GL surface" if !$gl_widget->gl_paint_state;
 
 	undef $program;
 	undef %uniforms;
