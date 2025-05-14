@@ -170,13 +170,13 @@ sub create_gl_widget
 			glDeleteProgram( $program );
 			glDeleteShader( $_ ) for values %shaders;
 	        },
-    );
+	);
 
-    undef $program;
-    undef %uniforms;
-    undef %shaders;
+	undef $program;
+	undef %uniforms;
+	undef %shaders;
 
-    $gl_widget->focus if $fullscreen;
+	$gl_widget->focus if $fullscreen;
 }
 
 sub change_view
