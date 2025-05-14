@@ -51,11 +51,15 @@ UnixGuts * pguts;
 static XVisualInfo *
 select_visual( Display * display, int screen, int * attr_list)
 {
-	int n_attrs;
+	int i, n_attrs;
 	GLXFBConfig * fb;
 	fb = glXChooseFBConfig(display,  screen,  attr_list, &n_attrs);
 	if ( !fb) return NULL;
-	return glXGetVisualFromFBConfig( display, *fb);
+	for ( i = 0; i < n_attrs; i++, fb++) {
+		XVisualInfo * xvi = glXGetVisualFromFBConfig( display, *fb);
+		if ( xvi ) return xvi;
+	}
+	return NULL;
 }
 
 Handle
@@ -78,6 +82,8 @@ gl_context_create( Handle widget, GLRequest * request)
 		*(attr++) = request-> in; \
 	}
 
+	*(attr++) = GLX_LEVEL;
+	*(attr++) = request->layer;
 	if ( request-> pixels         == GLREQ_PIXEL_RGBA) {
 		*(attr++) = GLX_RENDER_TYPE;
 		*(attr++) = GLX_RGBA_BIT;
@@ -88,9 +94,8 @@ gl_context_create( Handle widget, GLRequest * request)
 	}
 	if ( request-> stereo         == GLREQ_TRUE) {
 		*(attr++) = GLX_STEREO;
-		*(attr++) = True;
+		*(attr++) = (request-> double_buffer == GLREQ_TRUE) ? True : False;
 	}
-	ATTR( layer           , GLX_LEVEL            )
 	ATTR( color_bits      , GLX_BUFFER_SIZE      )
 	ATTR( aux_buffers     , GLX_AUX_BUFFERS      )
 	ATTR( red_bits        , GLX_RED_SIZE         )
