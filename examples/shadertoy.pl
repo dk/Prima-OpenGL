@@ -1,17 +1,3 @@
-BEGIN {
-	eval "use OpenGL::Modern;";
-	if ( $@) {
-		warn <<DIE;
-***
-This example needs optional OpenGL::Modern module installed.
-Please run 'cpan OpenGL::Modern'. If the example still doesn't
-work, please file a bug report!
-***
-DIE
-		exit(1);
-	}
-};
-
 use strict;
 use FindBin qw($Bin);
 use Time::HiRes 'time';

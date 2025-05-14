@@ -11,7 +11,7 @@
 
 use strict;
 use warnings;
-use OpenGL ':all';
+use OpenGL qw(:all glMaterialfv);
 use OpenGL::Shader;
 use Time::HiRes qw(time);
 use Prima qw(Application OpenGL GLWidget);
@@ -22,10 +22,10 @@ sub init
 {
 	glutInit;
 
-	glMaterialfv_p(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, 1, .7, .7, 1);
-	glMaterialfv_p(GL_FRONT_AND_BACK, GL_SPECULAR,	  1,  1,  1, 1);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pack(f4 => 1, .7, .7, 1));
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,	        pack(f4 => 1,  1,  1, 1));
 	glMaterialf   (GL_FRONT_AND_BACK, GL_SHININESS,	  50  );
-	
+
 	glFrontFace(GL_CW);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
@@ -33,7 +33,7 @@ sub init
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity;
 	glOrtho(0, 16, 0, 16, -10, 10);

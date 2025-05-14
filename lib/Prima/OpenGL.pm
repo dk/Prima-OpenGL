@@ -102,8 +102,8 @@ sub gl_read_pixels
 {
 	my ($self, %opt) = @_;
 
-	require OpenGL;
-	import OpenGL ':all';
+	require OpenGL::Modern;
+	import OpenGL::Modern ':all';
 
 	$opt{origin} //= [ 0, 0 ];
 	$opt{size}   //= [ $self-> size ];
@@ -158,8 +158,8 @@ sub gl_image_format
 {
 	my ( $image ) = @_;
 	
-	require OpenGL;
-	import OpenGL ':all';
+	require OpenGL::Modern;
+	import OpenGL::Modern ':all';
 
 	my ($format, $type);
 
@@ -192,8 +192,8 @@ sub gl_image_prepare
 {
 	my ( $image, $preferred_format ) = @_;
 	
-	require OpenGL;
-	import OpenGL ':all';
+	require OpenGL::Modern;
+	import OpenGL::Modern ':all';
 
 	my ( $opengl_format, $opengl_type, $prima_type ) = gl_image_format( $image );
 	return gl_image_prepare( $image->clone( type => $prima_type), $preferred_format ) if defined $prima_type;

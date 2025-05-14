@@ -17,7 +17,8 @@ The original example code can be found in OpenGL distribution in examples/light.
 use strict;
 use warnings;
 use Prima qw(Application Buttons GLWidget);
-use OpenGL qw(:glfunctions :glconstants);
+use OpenGL::Modern qw(:all);
+use OpenGL::Modern::Helpers qw(iv_ptr);
 
 my $win32     = $^O =~ /win32/i;
 my $composite = $::application->get_system_value( sv::CompositeDisplay );
@@ -64,8 +65,9 @@ sub icosahedron
 		glBegin(GL_POLYGON);
 		for ( my $j = 0; $j < 3; $j++) {
 			$config-> {use_lighting} || glColor3f(0,$i/19.0,$j/2.0);
-			glNormal3f( @{$v[$t[$i][$j]]});
-			glVertex3f( @{$v[$t[$i][$j]]});
+			my ($x,$y,$z) = @{$v[$t[$i][$j]]};
+			glNormal3f($x,$y,$z);
+			glVertex3f($x,$y,$z);
 		}
 		glEnd();
 
@@ -74,12 +76,19 @@ sub icosahedron
 			glDisable(GL_LIGHTING);
 			glColor3f($config-> {frame_color},0,0);
 			glBegin(GL_LINE_LOOP);
-			glVertex3f( map { 1.01 * $_ } @{$v[$_]}) for @{$t[$i]};
+			my ($x,$y,$z) = ( map { 1.01 * $_ } @{$v[$_]}) for @{$t[$i]};
+			for (@{$t[$i]}) {
+				my ($x,$y,$z) = map { 1.01 * $_ } @{$v[$_]};
+				glVertex3f( $x,$y,$z);
+			}
 			glEnd();
 			glPopAttrib();
 		}
 	}
 }
+
+my $fx;
+sub fx { iv_ptr($fx = pack('f*', @_)) }
 
 sub init
 {
@@ -90,12 +99,12 @@ sub init
 		my @mat_specular = ( 1.0, 1.0, 0.0, 0.8 );
 		my @mat_diffuse  = ( 0.0, 1.0, 1.0, 0.8 );
 		my @light_position = ( 1.0, 1.0, 1.0, 0.0 );
-		
-		glMaterialfv_s(GL_FRONT, GL_DIFFUSE, pack("f4",@mat_diffuse));
-		glMaterialfv_s(GL_FRONT, GL_SPECULAR, pack("f4",@mat_specular));
+
+		glMaterialfv_c(GL_FRONT, GL_DIFFUSE, fx(@mat_diffuse));
+		glMaterialfv_c(GL_FRONT, GL_SPECULAR, fx(@mat_specular));
 		glMaterialf(GL_FRONT, GL_SHININESS, 10);
-		glLightfv_s(GL_LIGHT0, GL_POSITION, pack("f4",@light_position));
-		
+		glLightfv_c(GL_LIGHT0, GL_POSITION, fx(@light_position));
+
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		glDepthFunc(GL_LESS);
