@@ -19,6 +19,32 @@ if (
 	push @libs, map { "-L$_" } @{$Prima::Config::Config{ldpaths} };
 	push @obj,  'x11.o';
 	push @libs, '-lGL';
+
+	my $prima_uses_mesa = 1;
+	unless ($Prima::Config{homebrew}) {
+		push @libs, '-framework OpenGL';
+		$prima_uses_mesa = 0;
+	}
+
+	my $opengl_uses_mesa = -1;
+	for my $inc (@INC) {
+		my $n = "$inc/auto/OpenGL/Modern/Modern.bundle";
+		next unless -f $n;
+		$n = `otool -L $n 2>/dev/null`;
+		if ( $n =~ /OpenGL.framework/) {
+			$opengl_uses_mesa = 0;
+		} elsif ( $n =~ m[mesa/lib/libGL]) {
+			$opengl_uses_mesa = 1;
+		}
+		last;
+	}
+
+	warn <<WARN if $opengl_uses_mesa != $prima_uses_mesa;
+
+** Warning: Prima and OpenGL::Modern are built with different sets of X11 libs.
+This most probably coredump your program. See more in README.md
+
+WARN
 } else {
 	push @obj,  'x11.o';
 	push @libs, '-lGL';

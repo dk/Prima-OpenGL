@@ -98,7 +98,7 @@ sub init_shader
 	        glGetActiveUniform_c( $program, $index, 16, iv_ptr($length), iv_ptr($size), iv_ptr($type), $name);
 		$length = unpack 'I', $length;
 		$name = substr $name, 0, $length;
-		$uniforms{ $name } = glGetUniformLocation_c( $program, $name);
+		$uniforms{ $name } = glGetUniformLocation( $program, $name);
 	}
 }
 
