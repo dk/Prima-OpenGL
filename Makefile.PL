@@ -20,11 +20,7 @@ if (
 	push @obj,  'x11.o';
 	push @libs, '-lGL';
 
-	my $prima_uses_mesa = 1;
-	unless ($Prima::Config{homebrew}) {
-		push @libs, '-framework OpenGL';
-		$prima_uses_mesa = 0;
-	}
+	my $prima_uses_mesa = $Prima::Config{homebrew} // -2;
 
 	my $opengl_uses_mesa = -1;
 	for my $inc (@INC) {
