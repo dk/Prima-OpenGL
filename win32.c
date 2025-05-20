@@ -45,89 +45,85 @@ static GLRequest ** xx;
 HBITMAP
 setupDIB(HDC hDC, int w, int h)
 {
-    BITMAPINFO *bmInfo;
-    BITMAPINFOHEADER *bmHeader;
-    UINT usage;
-    VOID *base;
-    int bmiSize;
-    int bitsPerPixel;
-    HBITMAP bm;
+	BITMAPINFO *bmInfo;
+	BITMAPINFOHEADER *bmHeader;
+	UINT usage;
+	VOID *base;
+	int bmiSize;
+	int bitsPerPixel;
+	HBITMAP bm;
 
-    bmiSize = sizeof(BITMAPINFO);
-    bitsPerPixel = GetDeviceCaps(hDC, BITSPIXEL);
+	bmiSize = sizeof(BITMAPINFO);
+	bitsPerPixel = GetDeviceCaps(hDC, BITSPIXEL);
 
-    switch (bitsPerPixel) {
-    case 8:
-	/* bmiColors is 256 WORD palette indices */
-	bmiSize += (256 * sizeof(WORD)) - sizeof(RGBQUAD);
-	break;
-    case 16:
-	/* bmiColors is 3 WORD component masks */
-	bmiSize += (3 * sizeof(DWORD)) - sizeof(RGBQUAD);
-	break;
-    case 24:
-    case 32:
-    default:
-	/* bmiColors not used */
-	break;
-    }
-    if ( !( bmInfo = malloc(bmiSize)))
-        return NULL;
-
-    bmHeader = &bmInfo->bmiHeader;
-
-    bmHeader->biSize = sizeof(*bmHeader);
-    bmHeader->biWidth = w;
-    bmHeader->biHeight = h;
-    bmHeader->biPlanes = 1;			/* must be 1 */
-    bmHeader->biBitCount = bitsPerPixel;
-    bmHeader->biXPelsPerMeter = 0;
-    bmHeader->biYPelsPerMeter = 0;
-    bmHeader->biClrUsed = 0;			/* all are used */
-    bmHeader->biClrImportant = 0;		/* all are important */
-
-    switch (bitsPerPixel) {
-    case 8:
-	bmHeader->biCompression = BI_RGB;
-	bmHeader->biSizeImage = 0;
-	usage = DIB_PAL_COLORS;
-	/* bmiColors is 256 WORD palette indices */
-	{
-	    WORD *palIndex = (WORD *) &bmInfo->bmiColors[0];
-	    int i;
-
-	    for (i=0; i<256; i++) {
-		palIndex[i] = i;
-	    }
+	switch (bitsPerPixel) {
+	case 8:
+		/* bmiColors is 256 WORD palette indices */
+		bmiSize += (256 * sizeof(WORD)) - sizeof(RGBQUAD);
+		break;
+	case 16:
+		/* bmiColors is 3 WORD component masks */
+		bmiSize += (3 * sizeof(DWORD)) - sizeof(RGBQUAD);
+		break;
+	case 24:
+	case 32:
+	default:
+		/* bmiColors not used */
+		break;
 	}
-	break;
-    case 16:
-	bmHeader->biCompression = BI_RGB;
-	bmHeader->biSizeImage = 0;
-	usage = DIB_RGB_COLORS;
-	/* bmiColors is 3 WORD component masks */
-	{
-	    DWORD *compMask = (DWORD *) &bmInfo->bmiColors[0];
+	if ( !( bmInfo = malloc(bmiSize)))
+		return NULL;
 
-	    compMask[0] = 0xF800;
-	    compMask[1] = 0x07E0;
-	    compMask[2] = 0x001F;
+	bmHeader = &bmInfo->bmiHeader;
+
+	bmHeader->biSize          = sizeof(*bmHeader);
+	bmHeader->biWidth         = w;
+	bmHeader->biHeight        = h;
+	bmHeader->biPlanes        = 1;                  /* must be 1 */
+	bmHeader->biBitCount      = bitsPerPixel;
+	bmHeader->biXPelsPerMeter = 0;
+	bmHeader->biYPelsPerMeter = 0;
+	bmHeader->biClrUsed       = 0;                  /* all are used */
+	bmHeader->biClrImportant  = 0;                  /* all are important */
+
+	switch (bitsPerPixel) {
+	case 8:
+		bmHeader->biCompression = BI_RGB;
+		bmHeader->biSizeImage = 0;
+		usage = DIB_PAL_COLORS;
+		/* bmiColors is 256 WORD palette indices */
+		{
+			WORD i, *palIndex = (WORD *) &bmInfo->bmiColors[0];
+			for (i=0; i<256; i++) palIndex[i] = i;
+		}
+		break;
+	case 16:
+		bmHeader->biCompression = BI_RGB;
+		bmHeader->biSizeImage = 0;
+		usage = DIB_RGB_COLORS;
+		/* bmiColors is 3 WORD component masks */
+		{
+			DWORD *compMask = (DWORD *) &bmInfo->bmiColors[0];
+
+			compMask[0] = 0xF800;
+			compMask[1] = 0x07E0;
+			compMask[2] = 0x001F;
+		}
+		break;
+	case 24:
+	case 32:
+	default:
+		bmHeader->biCompression = BI_RGB;
+		bmHeader->biSizeImage = 0;
+		usage = DIB_RGB_COLORS;
+		/* bmiColors not used */
+		break;
 	}
-	break;
-    case 24:
-    case 32:
-    default:
-	bmHeader->biCompression = BI_RGB;
-	bmHeader->biSizeImage = 0;
-	usage = DIB_RGB_COLORS;
-	/* bmiColors not used */
-	break;
-    }
 
-    bm = CreateDIBSection(hDC, bmInfo, usage, NULL, NULL, 0);
-		SelectObject( hDC, bm);
-    free(bmInfo);
-    return bm;
+	bm = CreateDIBSection(hDC, bmInfo, usage, NULL, NULL, 0);
+	SelectObject( hDC, bm);
+	free(bmInfo);
+	return bm;
 }
 
 Handle
