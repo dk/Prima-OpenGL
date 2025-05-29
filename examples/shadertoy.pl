@@ -205,7 +205,7 @@ if ( $ARGV[0] && open(F, '<', $ARGV[0])) {
 			$text = '';
 		} elsif ( $collect && m/^=end/) {
 			$collect = 0;
-			push @cams, [ $id, $text ];
+			unshift @cams, [ $id, $text ];
 		} elsif ( $collect ) {
 			$text .= $_;
 		}
@@ -258,7 +258,7 @@ run Prima;
 
 =cut
 
-=for shadertoy Cam 1
+=for shadertoy Cam 2
 // https://www.shadertoy.com/view/MdXyzX
 // afl_ext 2017-2024
 // MIT License
@@ -481,7 +481,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
 =end
 
-=for shadertoy Cam 2
+=for shadertoy Cam 1
 
 /*
 "Seascape" by Alexander Alekseev aka TDM - 2014
