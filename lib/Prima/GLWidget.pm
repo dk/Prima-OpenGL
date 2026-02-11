@@ -2,9 +2,11 @@ package Prima::GLWidget;
 
 use strict;
 use warnings;
+use OpenGL::Modern qw(glViewport glewCreateContext); # wants to be first on darwin/xquartz
 use Prima;
-use OpenGL::Modern qw(glViewport);
 use Prima::OpenGL;
+
+glewCreateContext() if $^O eq 'darwin';
 
 use vars qw(@ISA @paint_hooks);
 @ISA = qw(Prima::Widget);

@@ -18,27 +18,26 @@ if (
 } elsif ( $^O eq 'darwin') {
 	push @libs, map { "-L$_" } @{$Prima::Config::Config{ldpaths} };
 	push @obj,  'x11.o';
-	push @libs, '-lGL';
+	push @libs, '-lglut';
 
-	my $prima_uses_mesa = $Prima::Config::Config{homebrew} // -2;
-
-	my $opengl_uses_mesa = -1;
+	my ($metal, $x11) = (0,0);
 	for my $inc (@INC) {
 		my $n = "$inc/auto/OpenGL/Modern/Modern.bundle";
 		next unless -f $n;
 		$n = `otool -L $n 2>/dev/null`;
 		if ( $n =~ /OpenGL.framework/) {
-			$opengl_uses_mesa = 0;
-		} elsif ( $n =~ m[mesa/lib/libGL]) {
-			$opengl_uses_mesa = 1;
+			$metal = 1;
+		} elsif ( $n =~ m[/opt/X11/lib/libglut]) {
+			$glut = 1;
 		}
 		last;
 	}
 
-	warn <<WARN if $opengl_uses_mesa != $prima_uses_mesa;
+	warn <<WARN if $metal + $x11 < 2;
 
-** Warning: Prima and OpenGL::Modern are built with different sets of X11 libs.
-This most probably coredump your program. See more in README.md
+** Warning: OpenGL::Modern is built without XQuartz/GLX support.
+The module will compile but most probably won't work.
+See more in README.md
 
 WARN
 } else {

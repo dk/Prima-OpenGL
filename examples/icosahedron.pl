@@ -16,9 +16,9 @@ The original example code can be found in OpenGL distribution in examples/light.
 
 use strict;
 use warnings;
-use Prima qw(Application Buttons GLWidget);
 use OpenGL::Modern qw(:all);
 use OpenGL::Modern::Helpers qw(iv_ptr);
+use Prima qw(Application Buttons GLWidget);
 
 my $win32     = $^O =~ /win32/i;
 my $composite = $::application->get_system_value( sv::CompositeDisplay );

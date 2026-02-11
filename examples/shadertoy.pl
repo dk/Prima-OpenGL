@@ -60,7 +60,7 @@ sub create_shader
         glCompileShader($id);
         croak_on_gl_error;
 
-        if( glGetShaderiv_p( $id, GL_COMPILE_STATUS, 2 ) == GL_FALSE ) {
+        if( glGetShaderiv_p( $id, GL_COMPILE_STATUS ) == GL_FALSE ) {
             my $log = glGetShaderInfoLog_p($id) // 'Compile error';
             die "Bad shader: $log\n";
         }
@@ -84,12 +84,12 @@ sub init_shader
 	}
 	glLinkProgram($program);
 	my $err = glGetError;
-	if( glGetProgramiv_p( $program, GL_LINK_STATUS, 2) != GL_TRUE ) {
+	if( glGetProgramiv_p( $program, GL_LINK_STATUS) != GL_TRUE ) {
 		my $log = glGetProgramInfoLog_p($program) // 'Link error';
 		die "Link shader to program: $log\n";
 	}
 
-	my $count = glGetProgramiv_p( $program, GL_ACTIVE_UNIFORMS, 2);
+	my $count = glGetProgramiv_p( $program, GL_ACTIVE_UNIFORMS);
 	for my $index ( 0 .. $count-1 ) {
 		xs_buffer( my $length, 8 );
 		xs_buffer( my $size,   8 );
