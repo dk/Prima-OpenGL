@@ -46,6 +46,8 @@ after line 17:
  $define .= " -DGLEW\_APPLE\_GLX -I/opt/X11/include";
  $libs = '-L/opt/X11/lib -lglut';
 
+Also, in your program, never load OpenGL::Modern before Prima; for some reason that doesn't work
+
 Author
 ------
 
