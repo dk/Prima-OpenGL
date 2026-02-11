@@ -25,11 +25,8 @@ if (
 		my $n = "$inc/auto/OpenGL/Modern/Modern.bundle";
 		next unless -f $n;
 		$n = `otool -L $n 2>/dev/null`;
-		if ( $n =~ /OpenGL.framework/) {
-			$metal = 1;
-		} elsif ( $n =~ m[/opt/X11/lib/libglut]) {
-			$glut = 1;
-		}
+		$metal = 1 if $n =~ /OpenGL.framework/;
+		$x11   = 1 if $n =~ m[/opt/X11/lib/libglut];
 		last;
 	}
 
