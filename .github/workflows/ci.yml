@@ -76,6 +76,10 @@ jobs:
         with:
           perl-version: ${{ matrix.perl }}
       - name: Prepare
+        env:
+            OGLM_ADD_DEFINE: '-DGLEW_APPLE_GLX -I/opt/X11/include'
+            OGLM_ADD_LIBS:   '-L/opt/X11/lib -lglut'
+            OGLM_REPLACE_OTHERLDFLAGS: ''
         run: |
             uname -a
             perl -V
