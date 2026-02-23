@@ -1,0 +1,90 @@
+name: perl
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+jobs:
+  ubuntu:
+    strategy:
+      fail-fast: false
+      matrix:
+        perl-version:
+          - 'latest'
+    runs-on: ubuntu-latest
+    container:
+      image: perldocker/perl-tester:${{ matrix.perl-version }}     # https://hub.docker.com/r/perldocker/perl-tester
+    name: Linux ${{ matrix.perl-version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare
+        run: |
+            uname -a
+            perl -V
+            echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until
+            apt-get update
+            apt-get install -y xvfb libx11-dev libxpm-dev libxi-dev libxmu-dev freeglut3-dev libglu1-mesa-dev
+            cpanm Prima OpenGL::Modern
+      - name: Build
+        run: |
+            perl Makefile.PL
+            make
+      - name: Test
+        run: |
+            xvfb-run -a make test
+  strawberry:
+    strategy:
+      fail-fast: false
+      matrix:
+        perl-version:
+          - 'latest'
+    runs-on: windows-latest
+    name: Strawberry ${{ matrix.perl-version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+          distribution: strawberry
+      - name: Prepare
+        run: |
+            uname -a
+            perl -V
+            cpanm Prima OpenGL::Modern
+      - name: Build
+        run: |
+            perl Makefile.PL
+            gmake
+      - name: Test
+        run: |
+            gmake test
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        perl-version:
+          - 'latest'
+    runs-on: macos-latest
+    name: MacOSX ${{ matrix.perl-version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+      - name: Prepare
+        run: |
+            uname -a
+            perl -V
+            brew install freeglut mesa-glu
+            cpanm Prima OpenGL::Modern
+      - name: Build
+        run: |
+            perl Makefile.PL
+            make
+      - name: Test
+        run: |
+            make test
