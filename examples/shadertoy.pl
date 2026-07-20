@@ -76,7 +76,7 @@ sub init_shader
 	$program = glCreateProgram;
 	die "Couldn't create shader program: " . glGetError . "\n" unless $program;
 	my $log = glGetProgramInfoLog_p($program);
-	die $log if $log;
+	warn $log if $log;
 	for my $shader ( sort keys %shaders ) {
 		glAttachShader( $program, $shaders{$shader} );
 		my $err = glGetError;
